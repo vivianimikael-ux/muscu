@@ -137,3 +137,54 @@ export function sessionProgress(s: Session): SessionProgress {
 }
 
 export const isWod = (b: BlockLog): b is WodBlockLog => b.kind === 'wod'
+
+// ---------------------------------------------------------------------------
+// Séance → séance modèle
+
+/** Valeur la plus fréquente (à égalité : la plus grande), ou undefined. */
+function mostFrequent(values: number[]): number | undefined {
+  const counts = new Map<number, number>()
+  for (const v of values) counts.set(v, (counts.get(v) ?? 0) + 1)
+  let best: number | undefined
+  for (const [v, n] of counts) {
+    const bestN = best === undefined ? 0 : counts.get(best)!
+    if (n > bestN || (n === bestN && v > best!)) best = v
+  }
+  return best
+}
+
+/**
+ * Modèle reproduisant une séance faite : pour chaque exercice, le nombre de
+ * séries faites, la fourchette de reps réalisée, la charge la plus utilisée
+ * et le RPE visé d'origine ; les WOD sont repris avec les charges utilisées.
+ */
+export function templateFromSession(s: Session, now = Date.now()): Template {
+  const blocks: BlockPlan[] = s.blocks.map((b) => {
+    if (b.kind === 'wod') {
+      return { id: uid(), kind: 'wod', name: b.name, format: structuredClone(b.format), items: b.items.map((it) => ({ ...it, id: uid() })) }
+    }
+    return {
+      id: uid(),
+      kind: 'classic',
+      exercises: b.exercises.map((ex) => {
+        const done = ex.sets.filter((x) => x.done)
+        const sets = done.length ? done : ex.sets
+        const reps = sets.map((x) => x.reps).filter((r): r is number => r !== undefined && r > 0)
+        const repsMin = reps.length ? Math.min(...reps) : (ex.target?.repsMin ?? 8)
+        const repsMax = reps.length ? Math.max(...reps) : (ex.target?.repsMax ?? repsMin)
+        return {
+          id: uid(),
+          exerciseId: ex.exerciseId,
+          sets: Math.max(1, sets.length),
+          repsMin,
+          repsMax,
+          targetLoad: mostFrequent(sets.map((x) => x.load).filter((l): l is number => l !== undefined)),
+          targetRpe: ex.target?.targetRpe,
+          restSec: ex.restSec,
+          notes: ex.notes,
+        }
+      }),
+    }
+  })
+  return { id: uid(), updatedAt: now, name: s.name, blocks }
+}

@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { db, softDelete } from '../db/db'
+import { db, save, softDelete } from '../db/db'
 import { formatLongDay } from '../domain/dates'
 import { formatDuration } from '../domain/exercise'
-import { exerciseLogFromPlan, sessionProgress, uid } from '../domain/session'
+import { exerciseLogFromPlan, sessionProgress, templateFromSession, uid } from '../domain/session'
 import { bodyweightAt, computeRecords, exerciseHistory, isPR, setPR, sessionTime } from '../domain/stats'
 import type { ClassicBlockLog, ClassicExerciseLog, Exercise, Session, WodBlockLog } from '../domain/types'
 import { lastSetsByExercise } from '../ui/actions'
@@ -376,18 +376,15 @@ function SessionMenu({
               setRenaming(true)
             },
           },
-          ...(session.status === 'done'
-            ? [
-                {
-                  label: 'Rouvrir la séance',
-                  onClick: () =>
-                    mutate((s) => {
-                      s.status = 'in_progress'
-                      s.completedAt = undefined
-                    }),
-                },
-              ]
-            : []),
+          {
+            label: 'Enregistrer comme séance modèle',
+            disabled: session.blocks.length === 0,
+            onClick: async () => {
+              const template = templateFromSession(session)
+              await save(db.templates, template)
+              navigate(`/modeles/${template.id}`)
+            },
+          },
           {
             label: 'Supprimer la séance',
             danger: true,
