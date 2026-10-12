@@ -16,9 +16,11 @@ gauche" = N par côté (B1) ; "N au total" / "N (alterner D/G)" = N/2 par
 côté (B2) ; tests xRM = une série au poids réussi + max réel pour les 1RM,
 échecs ignorés (C) ; pyramides détaillées série par série (D).
 
-Isométrie / overcoming : conservée dans un exercice "(iso)" mesuré en temps
-(charge gardée sur la série), donc hors tonnage (E). Lignes "A, B" en
-contraste iso + dynamique séparées en deux exercices (G).
+Isométrie / overcoming (E, révisé le 2026-10-12) : pas d'exercice "(iso)"
+ni de durée (sans intérêt pour l'utilisateur). Avec charge : séries sur
+l'exercice normal, charge sans reps + note, donc hors records, 1RM et
+tonnage ; sans charge : ligne ignorée. Lignes "A, B" en contraste
+iso + dynamique séparées en deux exercices (G).
 
 Tout ce qui reste non reconnu est listé dans import/residuels.md.
 
@@ -457,11 +459,22 @@ class Converter:
     def empty_bar_for(self, name: str) -> float:
         return 0.0 if any(w in norm(name) for w in BODYWEIGHT_WORDS) else BAR_KG
 
-    def exercise_log(self, s: dict, idx: int, part: str, name: str, sets: list[dict], reps: Reps, load: Load, rest: int, notes, iso=False, base=None) -> dict:
-        ex_id = self.exercise_id(name, iso=iso, base_name=base)
+    def exercise_log(self, s: dict, idx: int, part: str, name: str, sets: list[dict], reps: Reps, load: Load, rest: int, notes, iso=False, base=None) -> dict | None:
+        iso = iso or re.search(r"\biso(metric)?\b", norm(name)) is not None
+        if iso:
+            # Isométrie / overcoming (E, révisé) : la durée n'intéresse pas l'utilisateur.
+            # Avec charge : séries sur l'exercice normal, charge sans reps (donc hors
+            # records, 1RM et tonnage) + note ; sans charge : ligne ignorée.
+            if not any(x["load"] for x in sets):
+                return None
+            sets = [{"reps": None, "load": x["load"]} for x in sets]
+            notes = "\n".join(filter(None, ["Isométrie / overcoming", notes]))
+            reps = Reps(unilateral=reps.unilateral)
+        ex_id = self.exercise_id(name, base_name=base)
         st = self.stats[ex_id]
         st["rows"] += 1
-        st[f"unit:{reps.unit}"] += 1
+        if reps.qty is not None or reps.groups or reps.per_round:
+            st[f"unit:{reps.unit}"] += 1
         if reps.unilateral:
             st["unilateral"] += 1
         if load.pair:
@@ -498,7 +511,8 @@ class Converter:
         if reps.qty is None and not reps.groups and not reps.per_round and not load.pairs and n_sets is None and not load.loads:
             return []  # ligne vide
         sets = build_sets(reps, load, n_sets)
-        return [self.exercise_log(s, idx, "", name, sets, reps, load, rest, notes, iso=reps.iso, base=name)]
+        log = self.exercise_log(s, idx, "", name, sets, reps, load, rest, notes, iso=reps.iso, base=name)
+        return [log] if log else []
 
     def convert_combo(self, s: dict, idx: int, e: dict, rest: int, notes, load_text: str) -> list[dict]:
         """G : "A, B" en contraste iso + dynamique → deux exercices."""
@@ -527,7 +541,8 @@ class Converter:
             else:
                 load = Load(loads=[num(m[1])]) if m else Load()
             sets = build_sets(reps, load, n_sets)
-            out.append(self.exercise_log(s, idx, f"/{i}", name, sets, reps, load, rest, notes, iso=iso, base=name))
+            if log := self.exercise_log(s, idx, f"/{i}", name, sets, reps, load, rest, notes, iso=iso, base=name):
+                out.append(log)
         return out
 
     def convert_intensity(self, s: dict, cfg: dict) -> list[dict]:
@@ -571,7 +586,7 @@ class Converter:
         for key, ex in self.exercises.items():
             st = self.stats[key]
             n = norm(ex["name"])
-            if st["iso"] or st["unit:s"] > st["rows"] / 2:
+            if st["unit:s"] > st["rows"] / 2:
                 measure = "time"
             elif st["unit:m"] > st["rows"] / 2:
                 measure = "distance"

@@ -14,7 +14,8 @@ export async function lastSetsByExercise(excludeSessionId?: string): Promise<Map
     for (const b of s.blocks) {
       if (b.kind !== 'classic') continue
       for (const ex of b.exercises) {
-        const done = ex.sets.filter((x) => x.done)
+        // Séries sans reps (isométrie importée) : pas de base de pré-remplissage.
+        const done = ex.sets.filter((x) => x.done && x.reps)
         if (done.length) inSession.set(ex.exerciseId, [...(inSession.get(ex.exerciseId) ?? []), ...done])
       }
     }

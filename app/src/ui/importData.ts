@@ -21,6 +21,13 @@ function stripNulls<T>(value: T): T {
   return value
 }
 
+const NOTION_PREFIX = 'notion-'
+
+async function retireMissing<T extends Doc>(table: Table<T, string>, keep: Set<string>, now: number) {
+  const stale = live(await table.toArray()).filter((d) => d.id.startsWith(NOTION_PREFIX) && !keep.has(d.id))
+  await table.bulkPut(stale.map((d) => ({ ...d, deleted: true, updatedAt: now })))
+}
+
 export interface ImportResult {
   exercises: number
   sessions: number
@@ -42,11 +49,22 @@ export async function importFile(file: File): Promise<ImportResult> {
   const maxTests = (data.maxTests ?? []).map((t) => ({ ...t, updatedAt: now }) as MaxTest)
 
   await db.transaction('rw', db.exercises, db.sessions, db.maxTests, async () => {
-    // Un exercice importé déjà présent garde les corrections faites dans l'app.
-    const existing = new Set((await db.exercises.bulkGet(exercises.map((e) => e.id))).filter(Boolean).map((e) => e!.id))
+    // Un exercice importé déjà présent garde les corrections faites dans l'app
+    // (sauf s'il avait été retiré : il est alors restauré).
+    const existing = new Set(
+      (await db.exercises.bulkGet(exercises.map((e) => e.id))).filter((e) => e && !e.deleted).map((e) => e!.id),
+    )
     await db.exercises.bulkPut(exercises.filter((e) => !existing.has(e.id)))
     await db.sessions.bulkPut(sessions)
     await db.maxTests.bulkPut(maxTests)
+
+    // Réimport Notion : ce qu'un import précédent avait créé et qui n'existe
+    // plus dans le nouveau fichier est retiré (ex : anciens exercices "(iso)").
+    if (sessions.some((s) => s.id.startsWith(NOTION_PREFIX))) {
+      await retireMissing(db.exercises, new Set(exercises.map((e) => e.id)), now)
+      await retireMissing(db.sessions, new Set(sessions.map((s) => s.id)), now)
+      await retireMissing(db.maxTests, new Set(maxTests.map((t) => t.id)), now)
+    }
   })
   return { exercises: exercises.length, sessions: sessions.length, maxTests: maxTests.length }
 }
@@ -54,7 +72,7 @@ export async function importFile(file: File): Promise<ImportResult> {
 /** Annule l'import Notion : suppression logique de tout ce qu'il a créé (propagée par la synchro). */
 export async function removeNotionImport(): Promise<number> {
   const softDeleteImported = async <T extends Doc>(table: Table<T, string>) => {
-    const docs = live(await table.toArray()).filter((d) => d.id.startsWith('notion-'))
+    const docs = live(await table.toArray()).filter((d) => d.id.startsWith(NOTION_PREFIX))
     await table.bulkPut(docs.map((d) => ({ ...d, deleted: true, updatedAt: Date.now() })))
     return docs.length
   }

@@ -199,7 +199,10 @@ Base cloud (type Supabase), un seul compte, cache local pour le hors-ligne.
 
 - **Réalisé le 2026-10-12** : 112 séances, 90 exercices créés, 5 max
   testés. Règles d'interprétation arbitrées avec l'utilisateur et
-  documentées dans `scripts/notion_convert.py`. Les séances importées ne
+  documentées dans `scripts/notion_convert.py`. Révision : l'isométrie
+  n'a pas d'exercice dédié (charge sans reps sur l'exercice normal) ; un
+  réimport remplace le précédent. Les exercices principaux sont rattachés
+  aux noms français de la bibliothèque (Bench Press → Développé couché…). Les séances importées ne
   sont pas renvoyées au calendrier (déjà présentes via la V4).
 
 ### 8.3 Arrêt de la V4

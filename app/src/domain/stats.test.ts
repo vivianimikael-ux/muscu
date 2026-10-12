@@ -51,6 +51,13 @@ describe('exerciseHistory', () => {
     expect(h[1].tonnage).toBe(500)
   })
 
+  it('séries sans reps (isométrie) : hors charge principale, 1RM et tonnage', () => {
+    const h = exerciseHistory(squat, [session('a', 2, 'squat', [set(150, undefined as unknown as number), set(100, 5)])], [])
+    expect(h[0].topLoad).toBe(100)
+    expect(h[0].tonnage).toBe(500)
+    expect(h[0].bestE1rm).toBeCloseTo(estimate1RM(100, 5)!)
+  })
+
   it('unilatéral : tonnage compté pour les deux côtés', () => {
     const h = exerciseHistory(fente, [session('a', 2, 'fente', [set(20, 10)])], [])
     expect(h[0].tonnage).toBe(400)

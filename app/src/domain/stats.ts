@@ -62,7 +62,8 @@ export function exerciseHistory(
     for (const set of sets) {
       const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps, set.rpe)
       if (e !== undefined && (bestE1rm === undefined || e > bestE1rm)) bestE1rm = e
-      if (set.load !== undefined && (topLoad === undefined || set.load > topLoad)) topLoad = set.load
+      // Séries sans reps (isométrie importée) : hors charge principale.
+      if (set.load !== undefined && set.reps && (topLoad === undefined || set.load > topLoad)) topLoad = set.load
       if (set.reps !== undefined && (topQty === undefined || set.reps > topQty)) topQty = set.reps
       tonnage += tonnageLoad(exercise.measure, set.load, bw) * (set.reps ?? 0)
     }
