@@ -1,0 +1,31 @@
+name: Synchro calendrier iCloud
+
+on:
+  schedule:
+    # Toutes les heures à :23 (décalé de l'heure pile, très chargée chez GitHub).
+    # Garde aussi le projet Supabase gratuit actif (pause après 7 jours sans activité).
+    - cron: "23 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: calendar
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r scripts/requirements.txt
+      - run: python -m unittest discover scripts
+      - run: python scripts/sync_calendar.py
+        env:
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          ICLOUD_APPLE_ID: ${{ secrets.ICLOUD_APPLE_ID }}
+          ICLOUD_APP_PASSWORD: ${{ secrets.ICLOUD_APP_PASSWORD }}

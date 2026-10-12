@@ -20,6 +20,7 @@ const COLLECTIONS: { local: Table<Doc, string>; remote: string }[] = [
   { local: db.sessions as unknown as Table<Doc, string>, remote: 'sessions' },
   { local: db.maxTests as unknown as Table<Doc, string>, remote: 'max_tests' },
   { local: db.bodyweights as unknown as Table<Doc, string>, remote: 'bodyweights' },
+  { local: db.programs as unknown as Table<Doc, string>, remote: 'programs' },
 ]
 
 // Un upsert pose le même server_updated_at sur toutes ses lignes : avec des

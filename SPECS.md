@@ -28,19 +28,46 @@ Programme
 - Un programme est placé sur le calendrier (date de début + jours
   d'entraînement de la semaine).
 - **Séances modèles** : réutilisables d'un bloc/programme à l'autre.
+- Un seul programme **actif** à la fois.
 
-### 2.2 Séances manquées
+### 2.1.1 Bloc = semaine type + exceptions (validé le 2026-10-12)
 
-Si une séance n'est pas faite à sa date, **le planning se décale** : la
-séance manquée glisse au prochain jour d'entraînement prévu, et toutes les
-séances suivantes du programme glissent d'autant. Le calendrier iCloud est
-mis à jour en conséquence.
+- Un bloc a un nom, un nombre de semaines et une **semaine type** : liste
+  ordonnée de séances modèles, répétée chaque semaine du bloc.
+- **Mode de progression par défaut du bloc** (libre / suggestion /
+  % du 1RM), **surchargeable par exercice**. La règle d'un exercice est
+  attachée à son occurrence dans un modèle (pas à l'exercice en général) :
+  un squat lourd le lundi et léger le vendredi peuvent avoir des tableaux
+  différents (programmation ondulatoire).
+- **% du 1RM : tableau par semaine** — pour chaque semaine du bloc :
+  % du max de référence, reps, séries (optionnel, sinon celles du modèle).
+- **Exceptions sur une semaine précise** :
+  - deload rapide : charges × X % et ± N séries sur toute la semaine ;
+  - remplacer une séance de la semaine type par un autre modèle ;
+  - sauter une séance, ou ajouter une séance en plus ;
+  - changer le mode de progression pour la semaine.
+
+### 2.2 Placement dans le temps et séances manquées
+
+- **Jours fixes** : les séances du programme se placent dans l'ordre sur
+  les jours d'entraînement choisis (ex : lundi, mercredi, vendredi). Une
+  séance ajoutée en exception consomme simplement le jour suivant.
+- **Séance manquée** : si une séance n'est pas faite à sa date, **le
+  planning se décale** — la séance manquée passe au prochain jour
+  d'entraînement à partir d'aujourd'hui, et toutes les suivantes glissent
+  d'autant.
+- **Déplacement manuel** : une séance peut être déplacée à une date
+  précise ; elle sort alors du flux et ne consomme pas de jour
+  d'entraînement. Une séance peut aussi être sautée depuis le planning.
+- Le planning calculé est mis en cache dans le programme (`schedule`) pour
+  que la synchro calendrier, côté serveur, n'ait pas à le recalculer.
 
 ### 2.3 Synchro calendrier
 
 Les séances planifiées sont poussées (sens unique app → calendrier) dans le
 calendrier iCloud existant via CalDAV — logique reprise de la V4. Un
 décalage de planning met à jour les événements existants (upsert par UID).
+**Créneau unique par défaut** (8h–9h, modifiable dans le programme).
 
 ## 3. Structure d'une séance
 

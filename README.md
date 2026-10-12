@@ -18,6 +18,10 @@ app/                  PWA React + TypeScript (Vite)
 Chaque push sur `main` lance [.github/workflows/deploy.yml](.github/workflows/deploy.yml) :
 tests, build, puis publication sur https://vivianimikael-ux.github.io/muscu/.
 
+Toutes les heures, [.github/workflows/calendar.yml](.github/workflows/calendar.yml)
+envoie le planning et les séances faites vers le calendrier iCloud « Musculation »
+([scripts/sync_calendar.py](scripts/sync_calendar.py), tests : `python3 -m unittest discover scripts`).
+
 Base Supabase : schéma dans [supabase/schema.sql](supabase/schema.sql)
 (projet `ndxsyluprxsrvyvmtrpr`).
 
@@ -42,5 +46,5 @@ cd app && npm run build
 - [x] V1 locale : exercices, modèles (blocs classiques + WOD), séance en cours
       (saisie série par série, repos, minuteurs WOD), records, 1RM, courbes, volume
 - [x] V1 : connexion (mot de passe + Face ID), synchro Supabase, déploiement GitHub Pages
-- [ ] V2 : programmes / blocs / semaines, progression, synchro iCloud
+- [x] V2 : programmes / blocs / semaines, progression, synchro calendrier iCloud
 - [ ] V3 : import Notion, arrêt de la V4

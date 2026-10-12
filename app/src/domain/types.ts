@@ -140,6 +140,8 @@ export interface ClassicExerciseLog {
   exerciseId: string
   /** Cible copiée depuis le modèle au démarrage (absente si ajouté à la volée). */
   target?: Pick<ClassicExercisePlan, 'repsMin' | 'repsMax' | 'targetLoad' | 'targetRpe'>
+  /** Explication de la cible calculée par la progression (ex : "+2,5 kg : RPE 7 < 8"). */
+  targetNote?: string
   restSec: number
   sets: SetLog[]
   notes?: string
@@ -189,6 +191,8 @@ export interface Session extends Doc {
   source: 'app' | 'notion'
   /** Fin du repos en cours (ms), pour retrouver le minuteur après un rechargement. */
   restEndsAt?: number
+  /** Occurrence de programme dont la séance est issue. */
+  programRef?: ProgramRef
   notes?: string
 }
 
@@ -204,4 +208,98 @@ export interface BodyweightEntry extends Doc {
   /** YYYY-MM-DD */
   date: string
   kg: number
+}
+
+// ---------------------------------------------------------------------------
+// Programmes (SPECS.md §2)
+
+export type ProgressionMode = 'free' | 'suggest' | 'percent'
+export type SuggestRule = 'rpe' | 'double'
+
+/** Une ligne du tableau % du 1RM (index = semaine du bloc). */
+export interface PercentWeek {
+  pct?: number
+  reps?: number
+  /** Absent : séries du modèle. */
+  sets?: number
+}
+
+/**
+ * Règle de progression d'UNE occurrence d'exercice dans un modèle
+ * (ClassicExercisePlan.id) : un même exercice peut avoir des tableaux
+ * différents d'une séance à l'autre (programmation ondulatoire).
+ */
+export interface ExerciseRule {
+  planId: string
+  /** Absent : mode du bloc. */
+  mode?: ProgressionMode
+  suggestRule?: SuggestRule
+  percentWeeks: PercentWeek[]
+}
+
+export interface WeekSlot {
+  id: string
+  templateId: string
+}
+
+export interface Deload {
+  /** Charges multipliées par loadPct / 100. */
+  loadPct: number
+  /** Séries ajoutées (négatif : retirées), minimum 1 par exercice. */
+  setsDelta: number
+}
+
+/** Exceptions sur une semaine précise d'un bloc (index 0-based). */
+export interface WeekOverride {
+  week: number
+  deload?: Deload
+  mode?: ProgressionMode
+  replace: { slotId: string; templateId: string }[]
+  skip: string[]
+  extra: WeekSlot[]
+}
+
+export interface ProgramBlock {
+  id: string
+  name: string
+  weeks: number
+  /** Semaine type : séances dans l'ordre. */
+  slots: WeekSlot[]
+  mode: ProgressionMode
+  suggestRule: SuggestRule
+  rules: ExerciseRule[]
+  overrides: WeekOverride[]
+}
+
+/** Séance du planning calculé, mise en cache pour la synchro calendrier. */
+export interface ScheduledEntry {
+  key: string
+  /** YYYY-MM-DD */
+  date: string
+  title: string
+  status: 'planned' | 'done'
+}
+
+export interface Program extends Doc {
+  name: string
+  /** YYYY-MM-DD */
+  startDate: string
+  /** Jours d'entraînement, 1 = lundi … 7 = dimanche. */
+  trainingDays: number[]
+  active: boolean
+  blocks: ProgramBlock[]
+  /** Déplacements manuels : clé d'occurrence → date YYYY-MM-DD. */
+  moves: Record<string, string>
+  /** Occurrences sautées depuis le planning. */
+  skipped: string[]
+  calendarSlot: { start: string; durationMin: number }
+  schedule?: ScheduledEntry[]
+}
+
+export interface ProgramRef {
+  programId: string
+  /** Clé d'occurrence : blockId:semaine:slotId */
+  key: string
+  blockId: string
+  week: number
 }

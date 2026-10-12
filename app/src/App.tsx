@@ -2,19 +2,22 @@ import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes } from 'react-router'
 import { ExercisesPage } from './pages/ExercisesPage'
 import { HistoryPage } from './pages/HistoryPage'
+import { BlockEditorPage } from './pages/BlockEditorPage'
 import { HomePage } from './pages/HomePage'
+import { ProgramEditorPage } from './pages/ProgramEditorPage'
 import { SessionPage } from './pages/SessionPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { TemplateEditorPage } from './pages/TemplateEditorPage'
 import { TemplatesPage } from './pages/TemplatesPage'
 import { PasswordRecovery } from './ui/AccountSection'
+import { useScheduleCacheSync } from './ui/programActions'
 
 // Page la plus lourde (graphiques Recharts) : chargée à la demande.
 const ExerciseDetailPage = lazy(() => import('./pages/ExerciseDetailPage').then((m) => ({ default: m.ExerciseDetailPage })))
 
 const TABS = [
   { to: '/', label: 'Accueil', icon: '⌂' },
-  { to: '/modeles', label: 'Modèles', icon: '☰' },
+  { to: '/modeles', label: 'Plan', icon: '☰' },
   { to: '/exercices', label: 'Exercices', icon: '◎' },
   { to: '/historique', label: 'Historique', icon: '↺' },
   { to: '/reglages', label: 'Réglages', icon: '⚙' },
@@ -48,6 +51,7 @@ function TabLayout() {
 }
 
 export default function App() {
+  useScheduleCacheSync()
   return (
     <>
       <PasswordRecovery />
@@ -62,6 +66,8 @@ export default function App() {
         </Route>
         {/* Plein écran, sans barre d'onglets */}
         <Route path="modeles/:id" element={<TemplateEditorPage />} />
+        <Route path="programmes/:id" element={<ProgramEditorPage />} />
+        <Route path="programmes/:id/blocs/:blockId" element={<BlockEditorPage />} />
         <Route path="seance/:id" element={<SessionPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

@@ -9,6 +9,9 @@ import { inProgressSession, startSession } from '../ui/actions'
 import { Button, Card, Empty, PageHeader, SectionTitle } from '../ui/components'
 import { useSyncState } from '../ui/AccountSection'
 import { useSessions } from '../ui/hooks'
+import { nextOccurrence } from '../domain/program'
+import { localDay, parseDay } from '../domain/dates'
+import { occurrenceTitle, startProgramSession, useActiveProgram, useSchedule, useTemplateMap } from '../ui/programActions'
 
 export function HomePage() {
   const navigate = useNavigate()
@@ -16,6 +19,10 @@ export function HomePage() {
   const templates = useLiveQuery(async () => live(await db.templates.toArray()).sort((a, b) => a.name.localeCompare(b.name, 'fr')))
 
   const sync = useSyncState()
+  const program = useActiveProgram()
+  const schedule = useSchedule(program)
+  const templateMap = useTemplateMap()
+  const next = schedule ? nextOccurrence(schedule) : undefined
   const current = sessions?.find((s) => s.status === 'in_progress')
   const recent = (sessions ?? [])
     .filter(isDone)
@@ -29,6 +36,16 @@ export function HomePage() {
       return
     }
     navigate(`/seance/${await startSession(templateId)}`)
+  }
+
+  const startNext = async () => {
+    if (!program || !next) return
+    const existing = await inProgressSession()
+    if (existing && !confirm(`« ${existing.name} » est encore en cours. En démarrer une autre quand même ?`)) {
+      navigate(`/seance/${existing.id}`)
+      return
+    }
+    navigate(`/seance/${await startProgramSession(program, next)}`)
   }
 
   return (
@@ -54,7 +71,23 @@ export function HomePage() {
           </Card>
         )}
 
-        <SectionTitle>Démarrer une séance</SectionTitle>
+        {program && next && next.status === 'planned' && (
+          <>
+            <SectionTitle>Prochaine séance · {program.name}</SectionTitle>
+            <Card className="space-y-3">
+              <div>
+                <div className="text-lg font-bold">{occurrenceTitle(program, next, templateMap)}</div>
+                <div className="text-sm text-muted">{describeDay(next.date)}</div>
+              </div>
+              <Button variant="primary" className="w-full py-3" onClick={() => void startNext()}>
+                Démarrer
+              </Button>
+            </Card>
+          </>
+        )}
+        {program && schedule && !next && <p className="mt-4 px-1 text-sm text-muted">Programme « {program.name} » terminé 🎉</p>}
+
+        <SectionTitle>{program ? 'Autre séance' : 'Démarrer une séance'}</SectionTitle>
         <div className="space-y-2">
           {templates?.map((t) => (
             <Card key={t.id} onClick={() => void start(t.id)} className="flex items-center justify-between">
@@ -98,4 +131,12 @@ export function HomePage() {
       </div>
     </>
   )
+}
+
+function describeDay(day: string): string {
+  const today = localDay()
+  if (day === today) return 'Aujourd’hui'
+  const tomorrow = localDay(parseDay(today) + 36 * 3600_000)
+  if (day === tomorrow) return 'Demain'
+  return formatDay(parseDay(day))
 }

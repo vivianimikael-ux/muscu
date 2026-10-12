@@ -5,6 +5,7 @@ import type {
   BlockPlan,
   ClassicExerciseLog,
   ClassicExercisePlan,
+  ProgramRef,
   SetLog,
   Session,
   Template,
@@ -38,7 +39,10 @@ export function prefillSets(plan: ClassicExercisePlan, last: SetLog[] | undefine
   })
 }
 
-export function exerciseLogFromPlan(plan: ClassicExercisePlan, last: SetLog[] | undefined): ClassicExerciseLog {
+/** Ajustement des cibles d'un exercice (progression de programme). */
+export type PlanAdjuster = (plan: ClassicExercisePlan) => { plan: ClassicExercisePlan; note?: string }
+
+export function exerciseLogFromPlan(plan: ClassicExercisePlan, last: SetLog[] | undefined, note?: string): ClassicExerciseLog {
   return {
     id: uid(),
     exerciseId: plan.exerciseId,
@@ -46,15 +50,19 @@ export function exerciseLogFromPlan(plan: ClassicExercisePlan, last: SetLog[] | 
     restSec: plan.restSec,
     sets: prefillSets(plan, last),
     notes: plan.notes,
+    targetNote: note,
   }
 }
 
-export function blockLogFromPlan(block: BlockPlan, lastSets: LastSetsLookup): BlockLog {
+export function blockLogFromPlan(block: BlockPlan, lastSets: LastSetsLookup, adjust?: PlanAdjuster): BlockLog {
   if (block.kind === 'classic') {
     return {
       id: uid(),
       kind: 'classic',
-      exercises: block.exercises.map((p) => exerciseLogFromPlan(p, lastSets(p.exerciseId))),
+      exercises: block.exercises.map((p) => {
+        const { plan, note } = adjust ? adjust(p) : { plan: p, note: undefined }
+        return exerciseLogFromPlan(plan, lastSets(p.exerciseId), note)
+      }),
     }
   }
   return {
@@ -68,7 +76,12 @@ export function blockLogFromPlan(block: BlockPlan, lastSets: LastSetsLookup): Bl
   }
 }
 
-export function sessionFromTemplate(t: Template, lastSets: LastSetsLookup, now = Date.now()): Session {
+export function sessionFromTemplate(
+  t: Template,
+  lastSets: LastSetsLookup,
+  now = Date.now(),
+  program?: { ref: ProgramRef; adjust: PlanAdjuster },
+): Session {
   return {
     id: uid(),
     updatedAt: now,
@@ -76,8 +89,9 @@ export function sessionFromTemplate(t: Template, lastSets: LastSetsLookup, now =
     templateId: t.id,
     status: 'in_progress',
     startedAt: now,
-    blocks: t.blocks.map((b) => blockLogFromPlan(b, lastSets)),
+    blocks: t.blocks.map((b) => blockLogFromPlan(b, lastSets, program?.adjust)),
     source: 'app',
+    programRef: program?.ref,
   }
 }
 

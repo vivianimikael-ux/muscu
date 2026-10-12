@@ -3,7 +3,7 @@
 // en poussant les documents dont updatedAt a changé (last-write-wins).
 
 import Dexie, { type Table } from 'dexie'
-import type { BodyweightEntry, Doc, Exercise, MaxTest, Session, Template } from '../domain/types'
+import type { BodyweightEntry, Doc, Exercise, MaxTest, Program, Session, Template } from '../domain/types'
 import { SEED_EXERCISES } from './seed'
 
 export interface Meta {
@@ -17,6 +17,7 @@ class MuscuDB extends Dexie {
   sessions!: Table<Session, string>
   maxTests!: Table<MaxTest, string>
   bodyweights!: Table<BodyweightEntry, string>
+  programs!: Table<Program, string>
   meta!: Table<Meta, string>
 
   constructor() {
@@ -28,6 +29,9 @@ class MuscuDB extends Dexie {
       maxTests: 'id, updatedAt, exerciseId, date',
       bodyweights: 'id, updatedAt, date',
       meta: 'key',
+    })
+    this.version(2).stores({
+      programs: 'id, updatedAt, active',
     })
   }
 }

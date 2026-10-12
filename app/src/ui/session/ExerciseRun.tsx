@@ -64,6 +64,7 @@ export function ExerciseRun({
         <div className="min-w-0 flex-1">
           <div className="truncate text-lg font-semibold">{exercise.name}</div>
           <div className="text-sm text-accent">{describeTarget(log, exercise)}</div>
+          {log.targetNote && <div className="text-xs text-accent/80">{log.targetNote}</div>}
         </div>
         <button type="button" className="-mr-1 px-2 text-xl text-muted" onClick={onMenu} aria-label="Actions de l'exercice">
           ⋯

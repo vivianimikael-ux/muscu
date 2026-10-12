@@ -1,5 +1,6 @@
 -- Schéma Supabase de Muscu App (cf. SPECS.md §10.3).
--- À exécuter une fois dans Supabase → SQL Editor → New query → Run.
+-- À exécuter dans Supabase → SQL Editor → New query → Run.
+-- Idempotent : peut être relancé après l'ajout d'une collection.
 --
 -- Une table par collection, même forme partout : le document complet est
 -- dans `data` (jsonb), avec les colonnes nécessaires à la synchro :
@@ -21,7 +22,7 @@ do $$
 declare
   t text;
 begin
-  foreach t in array array['exercises', 'templates', 'sessions', 'max_tests', 'bodyweights'] loop
+  foreach t in array array['exercises', 'templates', 'sessions', 'max_tests', 'bodyweights', 'programs'] loop
     execute format($f$
       create table if not exists public.%1$I (
         user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
