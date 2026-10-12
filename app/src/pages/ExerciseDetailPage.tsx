@@ -42,7 +42,19 @@ export function ExerciseDetailPage() {
 
   return (
     <>
-      <PageHeader title={ex.name} back />
+      <PageHeader
+        title={ex.name}
+        back
+        right={
+          <button
+            type="button"
+            className="px-2 font-medium text-accent"
+            onClick={() => document.getElementById('reglages-exercice')?.scrollIntoView({ behavior: 'smooth' })}
+          >
+            Modifier
+          </button>
+        }
+      />
       <div className="px-4">
         {/* Progression */}
         {chartData.length >= 2 && (
@@ -137,7 +149,9 @@ export function ExerciseDetailPage() {
         )}
 
         {/* Réglages de l'exercice */}
-        <SectionTitle>Réglages</SectionTitle>
+        <div id="reglages-exercice" className="scroll-mt-16">
+          <SectionTitle>Réglages</SectionTitle>
+        </div>
         <Card className="space-y-4">
           <label className="block">
             <Label>Nom</Label>

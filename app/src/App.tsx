@@ -1,8 +1,8 @@
-import { lazy, Suspense } from 'react'
 import { Navigate, NavLink, Outlet, Route, Routes } from 'react-router'
 import { ExercisesPage } from './pages/ExercisesPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { BlockEditorPage } from './pages/BlockEditorPage'
+import { ExerciseDetailPage } from './pages/ExerciseDetailPage'
 import { HomePage } from './pages/HomePage'
 import { ProgramEditorPage } from './pages/ProgramEditorPage'
 import { SessionPage } from './pages/SessionPage'
@@ -12,9 +12,8 @@ import { TemplatesPage } from './pages/TemplatesPage'
 import { PasswordRecovery } from './ui/AccountSection'
 import { useScheduleCacheSync } from './ui/programActions'
 
-// Page la plus lourde (graphiques Recharts) : chargée à la demande.
-const ExerciseDetailPage = lazy(() => import('./pages/ExerciseDetailPage').then((m) => ({ default: m.ExerciseDetailPage })))
-
+// Pas de chargement différé (lazy) : après une mise à jour, une PWA restée
+// ouverte réclamerait un fichier qui n'existe plus → écran noir.
 const TABS = [
   { to: '/', label: 'Accueil', icon: '⌂' },
   { to: '/modeles', label: 'Plan', icon: '☰' },
@@ -26,9 +25,7 @@ const TABS = [
 function TabLayout() {
   return (
     <div className="mx-auto min-h-dvh max-w-xl pb-24">
-      <Suspense>
-        <Outlet />
-      </Suspense>
+      <Outlet />
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 backdrop-blur">
         <div className="mx-auto flex max-w-xl">
           {TABS.map((t) => (

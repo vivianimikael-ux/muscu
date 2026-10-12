@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { HashRouter } from 'react-router'
 import App from './App.tsx'
+import { ErrorBoundary } from './ui/ErrorBoundary'
 import { ensureSeeded } from './db/db'
 import { supabase } from './sync/supabase'
 import { initSync } from './sync/sync'
@@ -19,8 +20,10 @@ if (fromAuthLink && /access_token=|error_description=/.test(location.hash)) hist
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <HashRouter>
-      <App />
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <App />
+      </HashRouter>
+    </ErrorBoundary>
   </StrictMode>,
 )
