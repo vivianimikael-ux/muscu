@@ -47,7 +47,7 @@ cd app && npm run build
       (saisie série par série, repos, minuteurs WOD), records, 1RM, courbes, volume
 - [x] V1 : connexion (mot de passe + Face ID), synchro Supabase, déploiement GitHub Pages
 - [x] V2 : programmes / blocs / semaines, progression, synchro calendrier iCloud
-- [x] V3 : import Notion (112 séances) — reste : arrêt de la V4
+- [x] V3 : import Notion (112 séances), V4 arrêtée le 2026-10-12
 
 ## Import Notion (unique)
 

@@ -204,8 +204,10 @@ Base cloud (type Supabase), un seul compte, cache local pour le hors-ligne.
 
 ### 8.3 Arrêt de la V4
 
-Une fois l'import validé et la synchro calendrier de l'app opérationnelle :
-désactiver le workflow GitHub Actions de `agent-Muscu-ics/`.
+**Fait le 2026-10-12** : workflow « Sync Notion -> iCloud » du repo
+`agent-muscu-ics` désactivé (réactivable depuis l'onglet Actions). Ses
+événements `@agent-muscu` restent dans le calendrier comme historique ; sa
+page de suivi reste en ligne mais n'est plus mise à jour.
 
 ## 9. Contraintes techniques connues
 
