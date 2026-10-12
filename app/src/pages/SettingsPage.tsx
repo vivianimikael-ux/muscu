@@ -5,6 +5,7 @@ import { formatKg } from '../domain/exercise'
 import { uid } from '../domain/session'
 import { Button, Card, Label, NumberField, PageHeader, SectionTitle } from '../ui/components'
 import { AccountSection } from '../ui/AccountSection'
+import { importFile, removeNotionImport } from '../ui/importData'
 import { useBodyweights } from '../ui/hooks'
 
 export function SettingsPage() {
@@ -53,7 +54,57 @@ export function SettingsPage() {
         </Card>
 
         <AccountSection />
+
+        <SectionTitle>Données</SectionTitle>
+        <ImportCard />
       </div>
     </>
+  )
+}
+
+function ImportCard() {
+  const [message, setMessage] = useState<{ text: string; error?: boolean }>()
+  const [busy, setBusy] = useState(false)
+  return (
+    <Card className="space-y-3">
+      <p className="text-sm text-muted">Importer un fichier de séances (ex : export Notion). Relancer un import met à jour sans dupliquer.</p>
+      <label className={`block w-full cursor-pointer rounded-xl bg-card-2 px-4 py-2.5 text-center font-medium ${busy ? 'opacity-40' : ''}`}>
+        Importer des données…
+        <input
+          type="file"
+          accept="application/json,.json"
+          className="hidden"
+          disabled={busy}
+          onChange={async (e) => {
+            const file = e.target.files?.[0]
+            e.target.value = ''
+            if (!file) return
+            setBusy(true)
+            setMessage(undefined)
+            try {
+              const r = await importFile(file)
+              setMessage({ text: `Importé : ${r.sessions} séances, ${r.exercises} exercices, ${r.maxTests} max testés.` })
+            } catch (err) {
+              setMessage({ text: err instanceof Error ? err.message : String(err), error: true })
+            } finally {
+              setBusy(false)
+            }
+          }}
+        />
+      </label>
+      <button
+        type="button"
+        className="text-sm text-muted underline"
+        disabled={busy}
+        onClick={async () => {
+          if (!confirm('Retirer toutes les séances, exercices et max importés depuis Notion ?')) return
+          const n = await removeNotionImport()
+          setMessage({ text: `${n} éléments importés retirés.` })
+        }}
+      >
+        Annuler l’import Notion
+      </button>
+      {message && <p className={`text-sm ${message.error ? 'text-danger' : 'text-ok'}`}>{message.text}</p>}
+    </Card>
   )
 }

@@ -79,6 +79,9 @@ class DesiredEventsTest(unittest.TestCase):
         ev = desired_events([], [s], EXERCISES)["session-sess1@muscu-app"]
         self.assertEqual((ev["end"] - ev["start"]).seconds, 3600)
 
+    def test_seances_importees_de_notion_ignorees(self):
+        self.assertEqual(desired_events([], [{**DONE, "source": "notion", "programRef": None}], EXERCISES), {})
+
     def test_resume_ignore_series_non_faites(self):
         self.assertNotIn("105", describe_session(DONE, {"squat": "Squat"}))
 

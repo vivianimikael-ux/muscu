@@ -47,4 +47,14 @@ cd app && npm run build
       (saisie série par série, repos, minuteurs WOD), records, 1RM, courbes, volume
 - [x] V1 : connexion (mot de passe + Face ID), synchro Supabase, déploiement GitHub Pages
 - [x] V2 : programmes / blocs / semaines, progression, synchro calendrier iCloud
-- [ ] V3 : import Notion, arrêt de la V4
+- [x] V3 : import Notion (112 séances) — reste : arrêt de la V4
+
+## Import Notion (unique)
+
+1. `python3 scripts/notion_export.py` : export brut vers `import/notion-raw.json`
+   (cookie dans `~/.config/agent-muscu/notion_session.txt`).
+2. `python3 scripts/notion_convert.py` : conversion selon les règles validées
+   (documentées en tête du script), non-reconnus listés dans `import/residuels.md`.
+3. Dans l'app : Réglages → Données → Importer `import/notion-import.json`.
+
+Le dossier `import/` contient des données personnelles et n'est pas versionné.

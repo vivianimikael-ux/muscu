@@ -130,6 +130,8 @@ def desired_events(programs: list[dict], sessions: list[dict], exercises: list[d
     for s in sessions:
         if s.get("status") != "done" or not s.get("completedAt"):
             continue
+        if s.get("source") == "notion":
+            continue  # déjà dans le calendrier via la V4 (événements @agent-muscu)
         ref = s.get("programRef")
         if ref:
             done_by_key[ref["key"]] = s

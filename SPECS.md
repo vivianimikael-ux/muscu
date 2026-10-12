@@ -197,6 +197,11 @@ Base cloud (type Supabase), un seul compte, cache local pour le hors-ligne.
 - Les noms d'exercices (résolus via la relation `Mouvements`) sont
   dédoublonnés vers la bibliothèque ; tags musculaires à compléter.
 
+- **Réalisé le 2026-10-12** : 112 séances, 90 exercices créés, 5 max
+  testés. Règles d'interprétation arbitrées avec l'utilisateur et
+  documentées dans `scripts/notion_convert.py`. Les séances importées ne
+  sont pas renvoyées au calendrier (déjà présentes via la V4).
+
 ### 8.3 Arrêt de la V4
 
 Une fois l'import validé et la synchro calendrier de l'app opérationnelle :

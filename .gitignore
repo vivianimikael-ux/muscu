@@ -1,1 +1,4 @@
 .DS_Store
+# Données personnelles exportées de Notion (repo public)
+import/
+__pycache__/
