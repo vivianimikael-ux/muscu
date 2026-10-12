@@ -160,6 +160,10 @@ WOD.**
 - **Estimé** : recalculé à chaque série d'un bloc classique — table RPE
   (type RTS) quand le RPE est renseigné, Epley sinon ; séries > 10 reps
   ignorées pour l'estimation.
+- **Exercices au poids du corps** (validé le 2026-10-12) : 1RM estimé
+  calculé sur la charge totale (poids de corps du jour + lest) puis
+  **affiché en lest** (« +37 kg de lest »), comme les max réels testés.
+  Le mode % ajoute le poids de corps actuel pour calculer puis propose un lest.
 - **Max de référence** pour le mode % : choisi par exercice — réel,
   estimé ou training max (% configurable du réel/estimé).
 - **Les blocs WOD ne comptent jamais** pour les 1RM ni les records.

@@ -98,3 +98,11 @@ export function formatKg(kg: number | undefined): string {
   if (kg === undefined) return '–'
   return `${formatNumber(kg)} kg`
 }
+
+/** Un max (1RM estimé ou réel) : en lest signé pour les exercices au poids du corps. */
+export function formatMax(measure: MeasureType, kg: number | undefined): string {
+  if (kg === undefined) return '–'
+  const v = Math.round(kg * 10) / 10
+  if (measure !== 'bodyweight') return formatKg(v)
+  return `${v < 0 ? '−' : '+'}${formatKg(Math.abs(v))} de lest`
+}

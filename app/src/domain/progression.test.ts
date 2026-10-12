@@ -85,6 +85,12 @@ describe('referenceMax', () => {
   it('réel : meilleur max testé', () => {
     expect(referenceMax({ ...squat, maxReference: 'real' }, history, [test], [])).toBe(125)
   })
+  it('poids du corps : max en lest ramené en charge totale avec le poids de corps actuel', () => {
+    const traction = { ...squat, id: 'traction', measure: 'bodyweight' as const, maxReference: 'real' as const }
+    const t = { ...test, exerciseId: 'traction', load: 30 }
+    expect(referenceMax(traction, [], [t], [{ id: 'w', updatedAt: 0, date: '2026-01-01', kg: 80 }])).toBe(110)
+  })
+
   it('training max : % du réel', () => {
     expect(referenceMax({ ...squat, maxReference: 'training' }, history, [test], [])).toBe(112.5)
   })

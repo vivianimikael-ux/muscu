@@ -63,9 +63,9 @@ describe('exerciseHistory', () => {
     expect(h[0].tonnage).toBe(400)
   })
 
-  it('poids du corps : charge effective = poids de corps du jour + lest', () => {
+  it('poids du corps : 1RM estimé sur poids de corps du jour + lest, exprimé en lest', () => {
     const h = exerciseHistory(traction, [session('a', 20, 'traction', [set(10, 5, 10)])], bw)
-    expect(h[0].bestE1rm).toBeCloseTo(estimate1RM(92, 5, 10)!)
+    expect(h[0].bestE1rm).toBeCloseTo(estimate1RM(92, 5, 10)! - 82)
   })
 })
 

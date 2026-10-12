@@ -1,4 +1,4 @@
-import { formatKg, formatNumber, formatQuantity, hasLoad, isStrengthMeasure, MEASURES } from '../../domain/exercise'
+import { formatKg, formatMax, formatNumber, formatQuantity, hasLoad, isStrengthMeasure, MEASURES } from '../../domain/exercise'
 import { nextSet } from '../../domain/session'
 import { isPR, setPR, type ExercisePerformance, type ExerciseRecords } from '../../domain/stats'
 import type { ClassicExerciseLog, Exercise, SetLog } from '../../domain/types'
@@ -74,7 +74,7 @@ export function ExerciseRun({
       {(context.last || best !== undefined) && (
         <div className="mt-1 space-y-0.5 text-xs text-muted">
           {context.last && <div className="truncate">Dernière fois : {context.last.sets.map((s) => describeSet(exercise, s)).join(', ')}</div>}
-          {best !== undefined && <div>Record 1RM estimé : {formatKg(Math.round(best * 10) / 10)}</div>}
+          {best !== undefined && <div>Record 1RM estimé : {formatMax(exercise.measure, best)}</div>}
           {!isStrengthMeasure(exercise.measure) && context.records.bestQty && (
             <div>Record : {formatQuantity(exercise.measure, context.records.bestQty.value)}</div>
           )}

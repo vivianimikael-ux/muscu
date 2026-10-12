@@ -22,6 +22,18 @@ export function bodyweightAt(entries: BodyweightEntry[], ts: number): number | u
   return found.kg
 }
 
+/**
+ * 1RM estimé d'une série, exprimé dans la convention de saisie. Pour le
+ * poids du corps, l'estimation se fait sur la charge totale (poids de corps
+ * + lest, seule estimation juste) puis est ramenée au lest : "1 rep avec
+ * +37 kg" se lit bien mieux que "1RM de 117 kg" pour des tractions.
+ */
+export function setE1rm(exercise: Exercise, set: SetLog, bw: number | undefined): number | undefined {
+  const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps, set.rpe)
+  if (e === undefined) return undefined
+  return exercise.measure === 'bodyweight' ? e - (bw ?? 0) : e
+}
+
 // ---------------------------------------------------------------------------
 // Historique par exercice (blocs classiques)
 
@@ -60,7 +72,7 @@ export function exerciseHistory(
     let topQty: number | undefined
     let tonnage = 0
     for (const set of sets) {
-      const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps, set.rpe)
+      const e = setE1rm(exercise, set, bw)
       if (e !== undefined && (bestE1rm === undefined || e > bestE1rm)) bestE1rm = e
       // Séries sans reps (isométrie importée) : hors charge principale.
       if (set.load !== undefined && set.reps && (topLoad === undefined || set.load > topLoad)) topLoad = set.load
@@ -121,7 +133,7 @@ function applySet(
     if (set.reps !== undefined && (!rec.bestQty || set.reps > rec.bestQty.value)) rec.bestQty = entry(set.reps)
     return
   }
-  const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps, set.rpe)
+  const e = setE1rm(exercise, set, bw)
   if (e !== undefined && (!rec.bestE1rm || e > rec.bestE1rm.value)) rec.bestE1rm = entry(e)
   if (set.load !== undefined && set.reps !== undefined && set.reps >= 1) {
     for (let n = 1; n <= Math.min(set.reps, MAX_TRACKED_REPS); n++) {
@@ -148,7 +160,7 @@ export function setPR(exercise: Exercise, set: SetLog, prior: ExerciseRecords, b
   if (!isStrengthMeasure(exercise.measure)) {
     return { ...none, qty: set.reps !== undefined && (!prior.bestQty || set.reps > prior.bestQty.value) }
   }
-  const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps, set.rpe)
+  const e = setE1rm(exercise, set, bw)
   const repsKey = Math.min(set.reps ?? 0, MAX_TRACKED_REPS)
   const priorAtReps = prior.repMax.get(repsKey)
   return {

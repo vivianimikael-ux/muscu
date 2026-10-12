@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { db, live, save, softDelete } from '../db/db'
 import { formatDay, localDay, parseDay } from '../domain/dates'
-import { formatKg, formatNumber, formatQuantity, hasLoad, incrementOf, isStrengthMeasure, MEASURES, MEASURE_TYPES, MUSCLES } from '../domain/exercise'
+import { formatKg, formatMax, formatNumber, formatQuantity, hasLoad, incrementOf, isStrengthMeasure, MEASURES, MEASURE_TYPES, MUSCLES } from '../domain/exercise'
 import { uid } from '../domain/session'
 import { computeRecords, exerciseHistory } from '../domain/stats'
 import type { Exercise, MaxReference, Muscle } from '../domain/types'
@@ -47,7 +47,7 @@ export function ExerciseDetailPage() {
         {/* Progression */}
         {chartData.length >= 2 && (
           <Card className="h-56 px-1 pt-3 pb-1">
-            <div className="px-3 text-xs text-muted">{strength ? '1RM estimé (meilleure série de chaque séance)' : 'Meilleure série'}</div>
+            <div className="px-3 text-xs text-muted">{strength ? `1RM estimé${ex.measure === 'bodyweight' ? ' en lest' : ''} (meilleure série de chaque séance)` : 'Meilleure série'}</div>
             <ResponsiveContainer width="100%" height="90%">
               <LineChart data={chartData} margin={{ top: 8, right: 12, bottom: 0, left: -12 }}>
                 <CartesianGrid stroke="#263041" vertical={false} />
@@ -64,7 +64,7 @@ export function ExerciseDetailPage() {
                 <Tooltip
                   contentStyle={{ background: '#1c2431', border: 'none', borderRadius: 8 }}
                   labelFormatter={(t) => formatDay(Number(t))}
-                  formatter={(v) => [strength ? formatKg(Number(v)) : formatQuantity(ex.measure, Number(v)), '']}
+                  formatter={(v) => [strength ? formatMax(ex.measure, Number(v)) : formatQuantity(ex.measure, Number(v)), '']}
                 />
                 <Line type="monotone" dataKey="value" stroke="#f97316" strokeWidth={2} dot={{ r: 3, fill: '#f97316' }} />
               </LineChart>
@@ -82,11 +82,11 @@ export function ExerciseDetailPage() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <div className="text-xs text-muted">1RM estimé</div>
-                      <div className="text-2xl font-bold">{records.bestE1rm ? formatKg(Math.round(records.bestE1rm.value * 10) / 10) : '–'}</div>
+                      <div className="text-2xl font-bold">{formatMax(ex.measure, records.bestE1rm?.value)}</div>
                     </div>
                     <div>
                       <div className="text-xs text-muted">1RM réel</div>
-                      <div className="text-2xl font-bold">{realMax ? formatKg(realMax.load) : '–'}</div>
+                      <div className="text-2xl font-bold">{formatMax(ex.measure, realMax?.load)}</div>
                     </div>
                   </div>
                   {records.repMax.size > 0 && (
@@ -120,7 +120,7 @@ export function ExerciseDetailPage() {
               <Card key={p.sessionId} onClick={() => navigate(`/seance/${p.sessionId}`)} className="py-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted">{formatDay(p.time)}</span>
-                  {p.bestE1rm !== undefined && <span className="text-muted">1RM est. {formatKg(Math.round(p.bestE1rm))}</span>}
+                  {p.bestE1rm !== undefined && <span className="text-muted">1RM est. {formatMax(ex.measure, p.bestE1rm)}</span>}
                 </div>
                 <div className="text-sm">
                   {p.sets

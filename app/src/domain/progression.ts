@@ -1,7 +1,6 @@
 // Calcul des cibles d'un exercice selon le mode de progression
 // (SPECS.md §5). Ne s'applique qu'aux blocs classiques.
 
-import { parseDay } from './dates'
 import { roundToIncrement } from './e1rm'
 import { formatKg, formatNumber, incrementOf, isStrengthMeasure } from './exercise'
 import type { ExercisePerformance } from './stats'
@@ -25,9 +24,10 @@ export function referenceMax(
   bodyweights: BodyweightEntry[],
   now = Date.now(),
 ): number | undefined {
+  // Tout est d'abord dans la convention de saisie (lest pour le poids du corps)…
   const real = maxTests
     .filter((t) => !t.deleted && t.exerciseId === exercise.id)
-    .map((t) => (exercise.measure === 'bodyweight' ? (bodyweightAt(bodyweights, parseDay(t.date)) ?? 0) + t.load : t.load))
+    .map((t) => t.load)
     .reduce<number | undefined>((best, v) => (best === undefined || v > best ? v : best), undefined)
 
   const bestE1rm = (perfs: ExercisePerformance[]) =>
@@ -35,16 +35,11 @@ export function referenceMax(
   const recent = history.filter((p) => now - p.time <= ESTIMATE_WINDOW_DAYS * 86_400_000)
   const estimated = bestE1rm(recent) ?? bestE1rm(history)
 
-  switch (exercise.maxReference) {
-    case 'real':
-      return real ?? estimated
-    case 'estimated':
-      return estimated ?? real
-    case 'training': {
-      const base = real ?? estimated
-      return base === undefined ? undefined : (base * exercise.trainingMaxPct) / 100
-    }
-  }
+  const ref = exercise.maxReference === 'estimated' ? (estimated ?? real) : (real ?? estimated)
+  if (ref === undefined) return undefined
+  // … puis ramené en charge réellement soulevée (poids de corps actuel ajouté).
+  const total = exercise.measure === 'bodyweight' ? ref + (bodyweightAt(bodyweights, now) ?? 0) : ref
+  return exercise.maxReference === 'training' ? (total * exercise.trainingMaxPct) / 100 : total
 }
 
 export interface ProgressionInput {
