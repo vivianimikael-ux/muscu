@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/* Thème sombre unique : lisible en salle, économe en batterie. */
+@theme {
+  --color-bg: #0b0f17;
+  --color-card: #141a24;
+  --color-card-2: #1c2431;
+  --color-line: #263041;
+  --color-muted: #8a95a8;
+  --color-fg: #e8ecf2;
+  --color-accent: #f97316;
+  --color-accent-strong: #ea580c;
+  --color-ok: #22c55e;
+  --color-danger: #ef4444;
+  --color-pr: #facc15;
+}
+
+html,
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+body {
+  font-family: system-ui, -apple-system, "SF Pro Text", sans-serif;
+  font-feature-settings: "tnum";
+}
+
+/* Évite le zoom automatique d'iOS sur les champs < 16px. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
