@@ -406,7 +406,7 @@ def build_sets(reps: Reps, load: Load, n_sets: int | None) -> list[dict]:
 
 def is_warmup(name: str) -> bool:
     n = norm(name)
-    return n == "wu" or ("," in n and any(w in n for w in MOBILITY_WORDS)) or any(n == w for w in MOBILITY_WORDS)
+    return n == "wu" or ("," in n and any(w in n for w in MOBILITY_WORDS)) or any(n == w for w in MOBILITY_WORDS) or n == "lying t spine rotation"
 
 
 def guess_muscles(name: str) -> tuple[list[str], list[str]]:

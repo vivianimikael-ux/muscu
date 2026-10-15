@@ -188,3 +188,47 @@ export function templateFromSession(s: Session, now = Date.now()): Template {
   })
   return { id: uid(), updatedAt: now, name: s.name, blocks }
 }
+
+// ---------------------------------------------------------------------------
+// WOD de l'historique → séances modèles "WOD1", "WOD2"…
+
+const wodSignature = (b: Pick<WodBlockLog, 'format' | 'items'>) =>
+  JSON.stringify([b.format, b.items.map((i) => [i.exerciseId, i.quantity])])
+
+/** Empreinte courte et stable (djb2) : même WOD → même id de modèle. */
+function shortHash(s: string): string {
+  let h = 5381
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0
+  return (h >>> 0).toString(36)
+}
+
+/**
+ * Un modèle par WOD différent fait (format + exercices + quantités), dans
+ * l'ordre chronologique, numérotés à la suite des "WODn" existants. Les WOD
+ * déjà présents dans un modèle sont ignorés : relancer ne crée que les nouveaux.
+ */
+export function wodTemplatesFromHistory(sessions: Session[], templates: Template[], now = Date.now()): Template[] {
+  const live = templates.filter((t) => !t.deleted)
+  const known = new Set(live.flatMap((t) => t.blocks.filter((b) => b.kind === 'wod').map(wodSignature)))
+  let n = Math.max(0, ...live.map((t) => Number(/^WOD(\d+)$/.exec(t.name)?.[1] ?? 0)))
+  const done = sessions
+    .filter((s) => s.status === 'done' && !s.deleted)
+    .sort((a, b) => (a.completedAt ?? a.startedAt ?? 0) - (b.completedAt ?? b.startedAt ?? 0))
+  const out: Template[] = []
+  for (const s of done) {
+    for (const b of s.blocks) {
+      if (b.kind !== 'wod' || b.items.length === 0) continue
+      const sig = wodSignature(b)
+      if (known.has(sig)) continue
+      known.add(sig)
+      n += 1
+      out.push({
+        id: `wod-${shortHash(sig)}`,
+        updatedAt: now,
+        name: `WOD${n}`,
+        blocks: [{ id: uid(), kind: 'wod', name: b.name ?? s.name, format: structuredClone(b.format), items: b.items.map((it) => ({ ...it, id: uid() })) }],
+      })
+    }
+  }
+  return out
+}

@@ -6,6 +6,7 @@ import { uid } from '../domain/session'
 import { Button, Card, Label, NumberField, PageHeader, SectionTitle } from '../ui/components'
 import { AccountSection } from '../ui/AccountSection'
 import { importFile, removeNotionImport } from '../ui/importData'
+import { createWodTemplates } from '../ui/actions'
 import { useBodyweights } from '../ui/hooks'
 
 export function SettingsPage() {
@@ -92,6 +93,20 @@ function ImportCard() {
           }}
         />
       </label>
+      <Button
+        className="w-full"
+        disabled={busy}
+        onClick={async () => {
+          const names = await createWodTemplates()
+          setMessage({
+            text: names.length
+              ? `${names.length} modèle${names.length > 1 ? 's' : ''} créé${names.length > 1 ? 's' : ''} : ${names.join(', ')} (onglet Plan).`
+              : 'Tous tes WOD ont déjà leur modèle.',
+          })
+        }}
+      >
+        Créer les modèles de mes WOD
+      </Button>
       <button
         type="button"
         className="text-sm text-muted underline"

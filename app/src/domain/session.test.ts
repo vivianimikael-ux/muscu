@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { prefillSets, sessionFromTemplate, templateFromSession } from './session'
-import type { ClassicExercisePlan, Template } from './types'
+import { prefillSets, sessionFromTemplate, templateFromSession, wodTemplatesFromHistory } from './session'
+import type { ClassicExercisePlan, Session, Template } from './types'
 
 const plan = (p: Partial<ClassicExercisePlan>): ClassicExercisePlan => ({
   id: 'p',
@@ -84,5 +84,32 @@ describe('templateFromSession', () => {
     const p = t.blocks[0].kind === 'classic' ? t.blocks[0].exercises[0] : undefined
     expect(p).toMatchObject({ exerciseId: 'squat', sets: 3, repsMin: 4, repsMax: 6, targetLoad: 100, targetRpe: 8 })
     expect(t.blocks[1]).toMatchObject({ kind: 'wod', format: { type: 'amrap', durationSec: 600 } })
+  })
+})
+
+describe('wodTemplatesFromHistory', () => {
+  const wodSession = (id: string, t: number, quantity: number): Session => ({
+    id,
+    updatedAt: 0,
+    name: `Séance ${id}`,
+    status: 'done',
+    completedAt: t,
+    source: 'app',
+    blocks: [
+      { id: 'c', kind: 'classic', exercises: [] },
+      { id: 'w', kind: 'wod', format: { type: 'amrap', durationSec: 1200 }, items: [{ id: 'i', exerciseId: 'burpee', quantity, load: 10 }], done: true },
+    ],
+  })
+
+  it('un modèle par WOD différent, dans l’ordre, sans doublon ni recréation', () => {
+    const sessions = [wodSession('b', 2, 15), wodSession('a', 1, 10), wodSession('c', 3, 10)]
+    const first = wodTemplatesFromHistory(sessions, [])
+    expect(first.map((t) => t.name)).toEqual(['WOD1', 'WOD2'])
+    expect(first[0].blocks[0]).toMatchObject({ kind: 'wod', name: 'Séance a', items: [{ exerciseId: 'burpee', quantity: 10, load: 10 }] })
+    // Relancé : rien de nouveau ; un nouveau WOD prend le numéro suivant.
+    expect(wodTemplatesFromHistory(sessions, first)).toEqual([])
+    const next = wodTemplatesFromHistory([...sessions, wodSession('d', 4, 20)], first)
+    expect(next.map((t) => t.name)).toEqual(['WOD3'])
+    expect(wodTemplatesFromHistory(sessions, [])[0].id).toBe(first[0].id)
   })
 })
