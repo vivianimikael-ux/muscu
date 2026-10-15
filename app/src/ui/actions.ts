@@ -1,6 +1,6 @@
 import { db, live, save } from '../db/db'
 import { isDone, sessionTime } from '../domain/stats'
-import { emptySession, sessionFromTemplate, wodTemplatesFromHistory } from '../domain/session'
+import { emptySession, sessionFromTemplate } from '../domain/session'
 import type { Session, SetLog } from '../domain/types'
 
 /** Séries faites lors de la dernière séance terminée contenant chaque exercice. */
@@ -41,12 +41,4 @@ export async function startSession(templateId?: string): Promise<string> {
   }
   await save(db.sessions, session)
   return session.id
-}
-
-/** Crée les modèles "WODn" des WOD de l'historique qui n'en ont pas encore ; renvoie leurs noms. */
-export async function createWodTemplates(): Promise<string[]> {
-  const [sessions, templates] = await Promise.all([db.sessions.toArray(), db.templates.toArray()])
-  const created = wodTemplatesFromHistory(live(sessions), templates)
-  await db.templates.bulkPut(created)
-  return created.map((t) => t.name)
 }
