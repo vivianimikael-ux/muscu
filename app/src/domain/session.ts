@@ -204,12 +204,16 @@ function shortHash(s: string): string {
 
 /**
  * Un modèle par WOD différent fait (format + exercices + quantités), dans
- * l'ordre chronologique, numérotés à la suite des "WODn" existants. Les WOD
- * déjà présents dans un modèle sont ignorés : relancer ne crée que les nouveaux.
+ * l'ordre chronologique, numérotés à la suite des "WODn" existants.
+ * Relancer ne crée que les nouveaux WOD : un WOD est ignoré s'il figure déjà
+ * tel quel dans un modèle, ou si son modèle a déjà été généré une fois (id
+ * stable), même modifié ou supprimé depuis — les retouches ne sont jamais
+ * écrasées et un modèle supprimé ne revient pas.
  */
 export function wodTemplatesFromHistory(sessions: Session[], templates: Template[], now = Date.now()): Template[] {
   const live = templates.filter((t) => !t.deleted)
   const known = new Set(live.flatMap((t) => t.blocks.filter((b) => b.kind === 'wod').map(wodSignature)))
+  const generated = new Set(templates.map((t) => t.id))
   let n = Math.max(0, ...live.map((t) => Number(/^WOD(\d+)$/.exec(t.name)?.[1] ?? 0)))
   const done = sessions
     .filter((s) => s.status === 'done' && !s.deleted)
@@ -219,11 +223,12 @@ export function wodTemplatesFromHistory(sessions: Session[], templates: Template
     for (const b of s.blocks) {
       if (b.kind !== 'wod' || b.items.length === 0) continue
       const sig = wodSignature(b)
-      if (known.has(sig)) continue
+      const id = `wod-${shortHash(sig)}`
+      if (known.has(sig) || generated.has(id)) continue
       known.add(sig)
       n += 1
       out.push({
-        id: `wod-${shortHash(sig)}`,
+        id,
         updatedAt: now,
         name: `WOD${n}`,
         blocks: [{ id: uid(), kind: 'wod', name: b.name ?? s.name, format: structuredClone(b.format), items: b.items.map((it) => ({ ...it, id: uid() })) }],

@@ -112,4 +112,13 @@ describe('wodTemplatesFromHistory', () => {
     expect(next.map((t) => t.name)).toEqual(['WOD3'])
     expect(wodTemplatesFromHistory(sessions, [])[0].id).toBe(first[0].id)
   })
+
+  it('un modèle généré puis modifié ou supprimé n’est jamais recréé ni écrasé', () => {
+    const sessions = [wodSession('a', 1, 10), wodSession('b', 2, 15)]
+    const [wod1, wod2] = wodTemplatesFromHistory(sessions, [])
+    const edited = structuredClone(wod1)
+    if (edited.blocks[0].kind === 'wod') edited.blocks[0].items[0].quantity = 12
+    const deleted = { ...wod2, deleted: true }
+    expect(wodTemplatesFromHistory(sessions, [edited, deleted])).toEqual([])
+  })
 })
