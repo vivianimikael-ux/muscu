@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
+import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { db, live } from '../db/db'
 import { formatDay } from '../domain/dates'
@@ -9,6 +10,8 @@ import { inProgressSession, startSession } from '../ui/actions'
 import { Button, Card, Empty, PageHeader, SectionTitle } from '../ui/components'
 import { useSyncState } from '../ui/AccountSection'
 import { useSessions } from '../ui/hooks'
+import { describeWodFormat } from '../ui/format'
+import type { Template } from '../domain/types'
 import { nextOccurrence } from '../domain/program'
 import { localDay, parseDay } from '../domain/dates'
 import { occurrenceTitle, startProgramSession, useActiveProgram, useSchedule, useTemplateMap } from '../ui/programActions'
@@ -16,7 +19,13 @@ import { occurrenceTitle, startProgramSession, useActiveProgram, useSchedule, us
 export function HomePage() {
   const navigate = useNavigate()
   const sessions = useSessions()
-  const templates = useLiveQuery(async () => live(await db.templates.toArray()).sort((a, b) => a.name.localeCompare(b.name, 'fr')))
+  const templates = useLiveQuery(async () =>
+    live(await db.templates.toArray()).sort((a, b) => a.name.localeCompare(b.name, 'fr', { numeric: true })),
+  )
+  const [showWods, setShowWods] = useState(false)
+  // Séances "WOD" : modèles ne contenant que des blocs WOD, regroupés dans une case repliable.
+  const wodTemplates = templates?.filter(isWodOnly) ?? []
+  const otherTemplates = templates?.filter((t) => !isWodOnly(t)) ?? []
 
   const sync = useSyncState()
   const program = useActiveProgram()
@@ -89,12 +98,48 @@ export function HomePage() {
 
         <SectionTitle>{program ? 'Autre séance' : 'Démarrer une séance'}</SectionTitle>
         <div className="space-y-2">
-          {templates?.map((t) => (
+          {otherTemplates.map((t) => (
             <Card key={t.id} onClick={() => void start(t.id)} className="flex items-center justify-between">
               <span className="font-medium">{t.name}</span>
               <span className="text-accent">▶</span>
             </Card>
           ))}
+          {wodTemplates.length > 0 && (
+            <Card className="p-0">
+              <button
+                type="button"
+                onClick={() => setShowWods(!showWods)}
+                aria-expanded={showWods}
+                className="flex w-full items-center justify-between rounded-2xl p-4 text-left active:bg-card-2"
+              >
+                <span className="font-medium">
+                  WOD <span className="text-muted">· {wodTemplates.length}</span>
+                </span>
+                <span className="text-muted">{showWods ? '▴' : '▾'}</span>
+              </button>
+              {showWods && (
+                <ul className="divide-y divide-line border-t border-line">
+                  {wodTemplates.map((t) => (
+                    <li key={t.id}>
+                      <button
+                        type="button"
+                        onClick={() => void start(t.id)}
+                        className="flex w-full items-center justify-between gap-2 px-4 py-3 text-left active:bg-card-2"
+                      >
+                        <span className="min-w-0">
+                          <span className="font-medium">{t.name}</span>
+                          <span className="block truncate text-xs text-muted">
+                            {t.blocks.map((b) => (b.kind === 'wod' ? describeWodFormat(b.format) : '')).join(' + ')}
+                          </span>
+                        </span>
+                        <span className="text-accent">▶</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Card>
+          )}
           {templates?.length === 0 && (
             <p className="px-1 text-sm text-muted">
               Aucun modèle pour l’instant :{' '}
@@ -140,3 +185,5 @@ function describeDay(day: string): string {
   if (day === tomorrow) return 'Demain'
   return formatDay(parseDay(day))
 }
+
+const isWodOnly = (t: Template) => t.blocks.length > 0 && t.blocks.every((b) => b.kind === 'wod')
