@@ -2,6 +2,7 @@ import { describeSets, formatKg, formatMax, formatNumber, formatQuantity, hasLoa
 import { formatDateDMY } from '../../domain/dates'
 import { nextSet } from '../../domain/session'
 import { isPR, setPR, type ExercisePerformance, type ExerciseRecords } from '../../domain/stats'
+import type { ReferenceMaxValue } from '../../domain/progression'
 import type { ClassicExerciseLog, Exercise, SetLog } from '../../domain/types'
 import { NumberField } from '../components'
 import { unlockAudio } from '../sound'
@@ -10,6 +11,14 @@ export interface ExerciseContext {
   /** Records établis AVANT cette séance. */
   records: ExerciseRecords
   last?: ExercisePerformance
+  /** Max de référence choisi pour l'exercice (réel, estimé ou training max). */
+  refMax?: ReferenceMaxValue
+}
+
+function refMaxLabel(ref: ReferenceMaxValue, ex: Exercise): string {
+  if (ref.source === 'training') return `Training max (${formatNumber(ex.trainingMaxPct)} %)`
+  if (ref.source === 'real') return 'Max réel testé'
+  return ex.maxReference === 'real' ? '1RM estimé (aucun max testé)' : '1RM estimé'
 }
 
 function describeTarget(log: ClassicExerciseLog, ex: Exercise): string {
@@ -43,7 +52,7 @@ export function ExerciseRun({
 }) {
   const loaded = hasLoad(exercise.measure)
   const unit = MEASURES[exercise.measure].unit
-  const best = context.records.bestE1rm?.value
+  const ref = context.refMax
 
   const toggle = (i: number) => {
     unlockAudio()
@@ -68,14 +77,18 @@ export function ExerciseRun({
         </button>
       </div>
 
-      {(context.last || best !== undefined) && (
+      {(context.last || ref) && (
         <div className="mt-1 space-y-0.5 text-xs text-muted">
           {context.last && (
             <div>
-              Dernière fois ({formatDateDMY(context.last.time)}) : {describeSets(exercise.measure, context.last.sets)}
+              Dernière fois ({formatDateDMY(context.last.time)}) : {describeSets(exercise.measure, context.last.sets, { rpe: false })}
             </div>
           )}
-          {best !== undefined && <div>Record 1RM estimé : {formatMax(exercise.measure, best)}</div>}
+          {ref && (
+            <div>
+              {refMaxLabel(ref, exercise)} : {formatMax(exercise.measure, ref.value)}
+            </div>
+          )}
           {!isStrengthMeasure(exercise.measure) && context.records.bestQty && (
             <div>Record : {formatQuantity(exercise.measure, context.records.bestQty.value)}</div>
           )}

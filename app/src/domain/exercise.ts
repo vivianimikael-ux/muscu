@@ -109,7 +109,7 @@ export function formatMax(measure: MeasureType, kg: number | undefined): string 
 }
 
 /** Une série lisible : "15kg×6 @8", "PDC+10kg×5", "PDC×8", "45 m". */
-export function describeSet(measure: MeasureType, s: { load?: number; reps?: number; rpe?: number }): string {
+export function describeSet(measure: MeasureType, s: { load?: number; reps?: number; rpe?: number }, showRpe = true): string {
   if (!hasLoad(measure)) return formatQuantity(measure, s.reps)
   let base: string
   if (measure === 'bodyweight') {
@@ -119,14 +119,18 @@ export function describeSet(measure: MeasureType, s: { load?: number; reps?: num
   }
   // Sans reps (isométrie importée) : la charge seule.
   const reps = s.reps !== undefined ? `×${s.reps}` : s.load !== undefined ? '' : '×–'
-  return `${base}${reps}${s.rpe !== undefined ? ` @${formatNumber(s.rpe)}` : ''}`
+  return `${base}${reps}${showRpe && s.rpe !== undefined ? ` @${formatNumber(s.rpe)}` : ''}`
 }
 
 /** Séries regroupées quand elles se suivent à l'identique : "4 séries 15kg×6, 20kg×3". */
-export function describeSets(measure: MeasureType, sets: { load?: number; reps?: number; rpe?: number }[]): string {
+export function describeSets(
+  measure: MeasureType,
+  sets: { load?: number; reps?: number; rpe?: number }[],
+  { rpe = true }: { rpe?: boolean } = {},
+): string {
   const groups: { label: string; count: number }[] = []
   for (const s of sets) {
-    const label = describeSet(measure, s)
+    const label = describeSet(measure, s, rpe)
     const last = groups[groups.length - 1]
     if (last?.label === label) last.count += 1
     else groups.push({ label, count: 1 })

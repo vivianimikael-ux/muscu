@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router'
-import { db, save, softDelete } from '../db/db'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db, live, save, softDelete } from '../db/db'
+import { referenceMaxValue } from '../domain/progression'
 import { formatLongDay } from '../domain/dates'
 import { formatDuration } from '../domain/exercise'
 import { exerciseLogFromPlan, sessionProgress, templateFromSession, uid } from '../domain/session'
@@ -43,22 +45,30 @@ export function SessionPage() {
     [session, bodyweights],
   )
 
-  // Contexte par exercice (records + dernière perf), calculé à partir des
-  // séances antérieures à celle-ci uniquement.
+  const maxTests = useLiveQuery(async () => live(await db.maxTests.toArray()))
+
+  // Contexte par exercice (records, dernière perf, max de référence),
+  // calculé à partir des séances antérieures à celle-ci uniquement.
   const refTime = session ? sessionTime(session) : Infinity
   const contextFor = useMemo(() => {
     const cache = new Map<string, ExerciseContext>()
     const others = (sessions ?? []).filter((s) => s.id !== id && sessionTime(s) < refTime)
     return (ex: Exercise): ExerciseContext => {
-      let c = cache.get(ex.id)
+      // Clé incluant les réglages de l'exercice : changer son max de référence se voit tout de suite.
+      const key = `${ex.id}|${ex.measure}|${ex.maxReference}|${ex.trainingMaxPct}`
+      let c = cache.get(key)
       if (!c) {
         const history = exerciseHistory(ex, others, bodyweights ?? [])
-        c = { records: computeRecords(ex, history, bodyweights ?? []), last: history[0] }
-        cache.set(ex.id, c)
+        c = {
+          records: computeRecords(ex, history, bodyweights ?? []),
+          last: history[0],
+          refMax: referenceMaxValue(ex, history, maxTests ?? [], refTime === Infinity ? Date.now() : refTime),
+        }
+        cache.set(key, c)
       }
       return c
     }
-  }, [sessions, bodyweights, id, refTime])
+  }, [sessions, bodyweights, maxTests, id, refTime])
 
   if (session === undefined || !exercises) return null
   if (session === null) return <Empty>Séance introuvable.</Empty>

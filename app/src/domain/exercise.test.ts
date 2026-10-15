@@ -13,6 +13,10 @@ describe('describeSets', () => {
     )
   })
 
+  it('sans RPE sur demande : séries de RPE différents regroupées', () => {
+    expect(describeSets('barbell', [{ load: 100, reps: 5, rpe: 7 }, { load: 100, reps: 5, rpe: 8 }], { rpe: false })).toBe('2 séries 100kg×5')
+  })
+
   it('poids du corps : PDC, avec ou sans lest', () => {
     expect(describeSets('bodyweight', [{ load: 0, reps: 8 }, { load: 10, reps: 5 }])).toBe('PDC×8, PDC+10kg×5')
   })

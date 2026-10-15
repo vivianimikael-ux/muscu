@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { progressPlan, referenceMax } from './progression'
+import { progressPlan, referenceMax, referenceMaxValue } from './progression'
 import type { ExercisePerformance } from './stats'
 import type { ClassicExercisePlan, Exercise, SetLog } from './types'
 
@@ -93,5 +93,26 @@ describe('referenceMax', () => {
 
   it('training max : % du réel', () => {
     expect(referenceMax({ ...squat, maxReference: 'training' }, history, [test], [])).toBe(112.5)
+  })
+})
+
+describe('referenceMaxValue', () => {
+  const history = [perf([[100, 5]], 10, 120)]
+  const test = { id: 't', updatedAt: 0, exerciseId: 'squat', date: '2026-09-01', load: 110 }
+  const after = Date.parse('2026-10-01')
+
+  it('max réel choisi : le max testé, sinon repli sur l’estimé', () => {
+    const real = { ...squat, maxReference: 'real' as const }
+    expect(referenceMaxValue(real, history, [test], after)).toEqual({ source: 'real', value: 110 })
+    expect(referenceMaxValue(real, [perf([[100, 5]], 10, 120)], [], Date.now())).toEqual({ source: 'estimated', value: 120 })
+  })
+
+  it('ignore les tests postérieurs à la date considérée', () => {
+    const real = { ...squat, maxReference: 'real' as const }
+    expect(referenceMaxValue(real, [], [test], Date.parse('2026-08-01'))).toBeUndefined()
+  })
+
+  it('training max : % du réel', () => {
+    expect(referenceMaxValue({ ...squat, maxReference: 'training' }, history, [test], after)).toEqual({ source: 'training', value: 99 })
   })
 })
