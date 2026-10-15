@@ -121,7 +121,7 @@ MUSCLE_RULES = [
     (("nordic", "leg curl", "legs curl"), ["ischios"], []),
     (("rdl", "deadlift", "back extension", "jefferson", "swing"), ["ischios", "fessiers"], ["lombaires"]),
     (("hip thrust", "bridge"), ["fessiers"], ["ischios"]),
-    (("adductor",), ["fessiers"], ["abdos"]),
+    (("adductor",), ["adducteurs"], ["abdos"]),
     (("squat", "lunge", "split", "step", "cossack", "cossak", "sissy", "sled push"), ["quadriceps", "fessiers"], []),
     (("jump", "hop", "bound", "pogo", "plyometric", "high knee"), ["quadriceps"], ["mollets", "fessiers"]),
     (("snatch", "thruster", "push press", "high pull", "triple extension"), ["quadriceps", "epaules"], ["fessiers"]),

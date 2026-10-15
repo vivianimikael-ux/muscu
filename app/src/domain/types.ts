@@ -22,6 +22,7 @@ export type Muscle =
   | 'abdos'
   | 'lombaires'
   | 'fessiers'
+  | 'adducteurs'
   | 'quadriceps'
   | 'ischios'
   | 'mollets'

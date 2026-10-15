@@ -11,6 +11,7 @@ export const MUSCLES: { id: Muscle; label: string }[] = [
   { id: 'abdos', label: 'Abdos' },
   { id: 'lombaires', label: 'Lombaires' },
   { id: 'fessiers', label: 'Fessiers' },
+  { id: 'adducteurs', label: 'Adducteurs' },
   { id: 'quadriceps', label: 'Quadriceps' },
   { id: 'ischios', label: 'Ischios' },
   { id: 'mollets', label: 'Mollets' },
@@ -105,4 +106,30 @@ export function formatMax(measure: MeasureType, kg: number | undefined): string 
   const v = Math.round(kg * 10) / 10
   if (measure !== 'bodyweight') return formatKg(v)
   return `${v < 0 ? '−' : '+'}${formatKg(Math.abs(v))} de lest`
+}
+
+/** Une série lisible : "15kg×6 @8", "PDC+10kg×5", "PDC×8", "45 m". */
+export function describeSet(measure: MeasureType, s: { load?: number; reps?: number; rpe?: number }): string {
+  if (!hasLoad(measure)) return formatQuantity(measure, s.reps)
+  let base: string
+  if (measure === 'bodyweight') {
+    base = s.load ? `PDC${s.load > 0 ? '+' : '−'}${formatNumber(Math.abs(s.load))}kg` : 'PDC'
+  } else {
+    base = s.load !== undefined ? `${formatNumber(s.load)}kg` : '–'
+  }
+  // Sans reps (isométrie importée) : la charge seule.
+  const reps = s.reps !== undefined ? `×${s.reps}` : s.load !== undefined ? '' : '×–'
+  return `${base}${reps}${s.rpe !== undefined ? ` @${formatNumber(s.rpe)}` : ''}`
+}
+
+/** Séries regroupées quand elles se suivent à l'identique : "4 séries 15kg×6, 20kg×3". */
+export function describeSets(measure: MeasureType, sets: { load?: number; reps?: number; rpe?: number }[]): string {
+  const groups: { label: string; count: number }[] = []
+  for (const s of sets) {
+    const label = describeSet(measure, s)
+    const last = groups[groups.length - 1]
+    if (last?.label === label) last.count += 1
+    else groups.push({ label, count: 1 })
+  }
+  return groups.map((g) => (g.count > 1 ? `${g.count} séries ${g.label}` : g.label)).join(', ')
 }

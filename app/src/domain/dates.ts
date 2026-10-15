@@ -19,3 +19,9 @@ const longFormatter = new Intl.DateTimeFormat('fr-FR', { weekday: 'long', day: '
 
 export const formatDay = (ts: number) => dayFormatter.format(ts)
 export const formatLongDay = (ts: number) => longFormatter.format(ts)
+
+/** Format court jj-mm-aaaa (ex : 15-10-2026). */
+export function formatDateDMY(ts: number): string {
+  const [y, m, d] = localDay(ts).split('-')
+  return `${d}-${m}-${y}`
+}

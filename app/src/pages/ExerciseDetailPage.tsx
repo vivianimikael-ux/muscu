@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { db, live, save, softDelete } from '../db/db'
 import { formatDay, localDay, parseDay } from '../domain/dates'
-import { formatKg, formatMax, formatNumber, formatQuantity, hasLoad, incrementOf, isStrengthMeasure, MEASURES, MEASURE_TYPES, MUSCLES } from '../domain/exercise'
+import { describeSets, formatKg, formatMax, formatNumber, formatQuantity, hasLoad, incrementOf, isStrengthMeasure, MEASURES, MEASURE_TYPES, MUSCLES } from '../domain/exercise'
 import { uid } from '../domain/session'
 import { computeRecords, exerciseHistory } from '../domain/stats'
 import type { Exercise, MaxReference, Muscle } from '../domain/types'
@@ -134,15 +134,7 @@ export function ExerciseDetailPage() {
                   <span className="text-muted">{formatDay(p.time)}</span>
                   {p.bestE1rm !== undefined && <span className="text-muted">1RM est. {formatMax(ex.measure, p.bestE1rm)}</span>}
                 </div>
-                <div className="text-sm">
-                  {p.sets
-                    .map((s) =>
-                      hasLoad(ex.measure)
-                        ? `${s.load !== undefined ? formatNumber(s.load) : '–'}×${s.reps ?? '–'}${s.rpe ? ` @${formatNumber(s.rpe)}` : ''}`
-                        : formatQuantity(ex.measure, s.reps),
-                    )
-                    .join(' · ')}
-                </div>
+                <div className="text-sm">{describeSets(ex.measure, p.sets)}</div>
               </Card>
             ))}
           </div>
