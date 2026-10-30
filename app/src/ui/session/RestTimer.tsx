@@ -1,26 +1,11 @@
-import { useEffect, useRef } from 'react'
 import { formatDuration } from '../../domain/exercise'
 import { useNow } from '../hooks'
-import { playCue } from '../sound'
 
-/** Barre de repos collée en bas de l'écran, avec bips sur les 3 dernières secondes. */
+/** Barre de repos collée en bas de l'écran (les bips sont gérés au niveau de l'app : useRestBeeps). */
 export function RestTimer({ endsAt, onChange }: { endsAt: number | undefined; onChange: (endsAt: number | undefined) => void }) {
   const active = endsAt !== undefined
   const now = useNow(active, 200)
   const remaining = active ? Math.ceil((endsAt - now) / 1000) : 0
-  const lastRef = useRef<number | undefined>(undefined)
-
-  useEffect(() => {
-    if (!active) {
-      lastRef.current = undefined
-      return
-    }
-    const last = lastRef.current
-    lastRef.current = remaining
-    if (last === undefined || last === remaining) return
-    if (remaining <= 0 && last > 0) playCue('end')
-    else if (remaining >= 1 && remaining <= 3) playCue('tick')
-  }, [active, remaining])
 
   if (!active) return null
   const over = remaining <= 0

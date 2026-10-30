@@ -12,7 +12,7 @@ import { lastSetsByExercise } from '../ui/actions'
 import { ActionSheet, Button, Empty, Sheet, TextField } from '../ui/components'
 import { ExercisePicker } from '../ui/ExercisePicker'
 import { defaultWodFormat } from '../ui/format'
-import { useBodyweights, useExerciseMap, useNow, useSessions } from '../ui/hooks'
+import { useBodyweights, useExerciseMap, useNow, useSessions, useWakeLock } from '../ui/hooks'
 import { ExerciseRun, type ExerciseContext } from '../ui/session/ExerciseRun'
 import { RestTimer } from '../ui/session/RestTimer'
 import { WodBlockCard } from '../ui/session/WodRun'
@@ -39,6 +39,8 @@ export function SessionPage() {
 
   const inProgress = session?.status === 'in_progress'
   const now = useNow(inProgress, 1000)
+  // Écran allumé pendant toute la séance : un écran verrouillé suspend l'app (plus de bip de repos).
+  useWakeLock(inProgress)
 
   const bodyweight = useMemo(
     () => (session && bodyweights ? bodyweightAt(bodyweights, sessionTime(session)) : undefined),

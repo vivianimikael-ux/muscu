@@ -223,6 +223,11 @@ page de suivi reste en ligne mais n'est plus mise à jour.
   pendant la séance.
 - Le son doit être "débloqué" par une interaction utilisateur (ex : bouton
   Démarrer).
+- Bips de repos fiabilisés (2026-10-30) : écran maintenu allumé pendant
+  toute la séance, bips programmés à l'avance sur l'horloge audio (pas de
+  minuteur JS), audio repris à chaque toucher / retour dans l'app, gestion
+  au niveau de l'app (quelle que soit la page). Le bouton silencieux de
+  l'iPhone coupe aussi ces sons (limite iOS).
 - Les identifiants iCloud (mot de passe d'application CalDAV) ne doivent pas
   vivre dans le navigateur → synchro calendrier côté serveur (fonction
   serveur ou job planifié).

@@ -55,7 +55,7 @@ export function ExerciseRun({
   const ref = context.refMax
 
   const toggle = (i: number) => {
-    unlockAudio()
+    void unlockAudio()
     const wasDone = log.sets[i].done
     edit((l) => {
       l.sets[i].done = !wasDone

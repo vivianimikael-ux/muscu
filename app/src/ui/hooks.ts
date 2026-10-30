@@ -1,7 +1,8 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { db, live } from '../db/db'
 import type { BodyweightEntry, Exercise, Session } from '../domain/types'
+import { installAudioUnlock, scheduleRestBeeps } from './sound'
 
 /** Exercices actifs, triés par nom. */
 export function useExercises(): Exercise[] | undefined {
@@ -59,4 +60,19 @@ export function useWakeLock(active: boolean): void {
       void lock?.release()
     }
   }, [active])
+}
+
+/**
+ * Bips de fin de repos, gérés au niveau de l'app : ils sonnent quelle que soit
+ * la page affichée. Programmés sur l'horloge audio dès que le repos change,
+ * et reprogrammés à chaque toucher / retour dans l'app (iOS suspend l'audio).
+ */
+export function useRestBeeps(): void {
+  const endsAt = useLiveQuery(async () => live(await db.sessions.where('status').equals('in_progress').toArray())[0]?.restEndsAt)
+  const latest = useRef<number | undefined>(undefined)
+  useEffect(() => {
+    latest.current = endsAt
+    scheduleRestBeeps(endsAt)
+  }, [endsAt])
+  useEffect(() => installAudioUnlock(() => scheduleRestBeeps(latest.current, true)), [])
 }

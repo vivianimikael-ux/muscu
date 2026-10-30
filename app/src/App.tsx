@@ -10,6 +10,7 @@ import { SettingsPage } from './pages/SettingsPage'
 import { TemplateEditorPage } from './pages/TemplateEditorPage'
 import { TemplatesPage } from './pages/TemplatesPage'
 import { PasswordRecovery } from './ui/AccountSection'
+import { useRestBeeps } from './ui/hooks'
 import { useScheduleCacheSync } from './ui/programActions'
 
 // Pas de chargement différé (lazy) : après une mise à jour, une PWA restée
@@ -49,6 +50,7 @@ function TabLayout() {
 
 export default function App() {
   useScheduleCacheSync()
+  useRestBeeps()
   return (
     <>
       <PasswordRecovery />

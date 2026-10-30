@@ -57,7 +57,7 @@ export function WodBlockCard({ block, exercises, edit }: { block: WodBlockLog; e
             variant="primary"
             className="flex-1 py-3"
             onClick={() => {
-              unlockAudio()
+              void unlockAudio()
               edit((b) => {
                 b.startedAt = Date.now()
                 b.finishedAt = undefined
