@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { useLocation, useNavigate, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, live, save, softDelete } from '../db/db'
 import { referenceMaxValue } from '../domain/progression'
@@ -25,6 +25,7 @@ type ExerciseRef = { blockId: string; exerciseLogId: string }
 export function SessionPage() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [session, mutate] = useEditableDoc(db.sessions, id)
   const exercises = useExerciseMap()
   const sessions = useSessions()
@@ -120,6 +121,14 @@ export function SessionPage() {
     setSummary({ prs })
   }
 
+  // Retour à la page d'origine (Historique, fiche exercice…). Sans page
+  // précédente dans l'app (ouverture directe) : Historique pour une séance
+  // terminée, accueil pour une séance en cours.
+  const goBack = () => {
+    if (location.key !== 'default') navigate(-1)
+    else navigate(session.status === 'done' ? '/historique' : '/', { replace: true })
+  }
+
   const progress = sessionProgress(session)
   const menuLog = menuFor ? findExercise(session, menuFor) : undefined
 
@@ -127,7 +136,7 @@ export function SessionPage() {
     <div className="mx-auto min-h-dvh max-w-xl pb-32">
       <header className="pt-safe sticky top-0 z-20 border-b border-line bg-bg/95 backdrop-blur">
         <div className="flex h-14 items-center gap-2 px-4">
-          <button type="button" onClick={() => navigate('/')} className="-ml-2 px-2 text-2xl text-accent" aria-label="Retour">
+          <button type="button" onClick={goBack} className="-ml-2 px-2 text-2xl text-accent" aria-label="Retour">
             ‹
           </button>
           <div className="min-w-0 flex-1">
