@@ -25,3 +25,10 @@ export function formatDateDMY(ts: number): string {
   const [y, m, d] = localDay(ts).split('-')
   return `${d}-${m}-${y}`
 }
+
+/** Durée lisible d'une séance : "45 min", "1 h 05". */
+export function formatSessionDuration(ms: number): string {
+  const totalMin = Math.max(0, Math.round(ms / 60_000))
+  if (totalMin < 60) return `${totalMin} min`
+  return `${Math.floor(totalMin / 60)} h ${(totalMin % 60).toString().padStart(2, '0')}`
+}

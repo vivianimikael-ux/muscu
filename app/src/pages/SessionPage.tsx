@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, live, save, softDelete } from '../db/db'
 import { referenceMaxValue } from '../domain/progression'
-import { formatLongDay } from '../domain/dates'
+import { formatDateDMY, formatSessionDuration } from '../domain/dates'
 import { formatDuration } from '../domain/exercise'
 import { exerciseLogFromPlan, sessionProgress, templateFromSession, uid } from '../domain/session'
 import { bodyweightAt, computeRecords, exerciseHistory, isPR, setPR, sessionTime } from '../domain/stats'
@@ -136,7 +136,7 @@ export function SessionPage() {
               {inProgress && session.startedAt
                 ? `${formatDuration((now - session.startedAt) / 1000)} · ${progress.doneSets}/${progress.totalSets} séries`
                 : session.status === 'done' && session.completedAt
-                  ? `Terminée · ${formatLongDay(session.completedAt)}`
+                  ? describeFinished(session, session.completedAt)
                   : ''}
             </div>
           </div>
@@ -227,7 +227,7 @@ export function SessionPage() {
           <p>
             {progress.doneSets} séries
             {progress.totalWods ? ` · ${progress.doneWods} WOD` : ''}
-            {session.startedAt && session.completedAt ? ` en ${formatDuration((session.completedAt - session.startedAt) / 1000)}` : ''}.
+            {session.startedAt && session.completedAt ? ` en ${formatSessionDuration(session.completedAt - session.startedAt)}` : ''}.
           </p>
           {summary && summary.prs > 0 && <p className="text-pr">★ {summary.prs} record{summary.prs > 1 ? 's' : ''} battu{summary.prs > 1 ? 's' : ''} !</p>}
           <Button variant="primary" className="w-full" onClick={() => navigate('/', { replace: true })}>
@@ -425,4 +425,10 @@ function SessionMenu({
       </Sheet>
     </>
   )
+}
+
+/** "Terminée en 1 h 13 · 12-10-2026" ; sans durée pour les séances importées (horaires inconnus). */
+function describeFinished(s: Session, completedAt: number): string {
+  const duration = s.source !== 'notion' && s.startedAt ? ` en ${formatSessionDuration(completedAt - s.startedAt)}` : ''
+  return `Terminée${duration} · ${formatDateDMY(completedAt)}`
 }

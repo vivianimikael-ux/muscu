@@ -2,8 +2,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { db, live } from '../db/db'
-import { formatDay } from '../domain/dates'
-import { formatDuration } from '../domain/exercise'
+import { formatDay, formatSessionDuration } from '../domain/dates'
 import { sessionProgress } from '../domain/session'
 import { isDone, sessionTime } from '../domain/stats'
 import { inProgressSession, startSession } from '../ui/actions'
@@ -167,7 +166,7 @@ export function HomePage() {
                 </div>
                 <div className="text-sm text-muted">
                   {sessionProgress(s).doneSets} séries
-                  {s.startedAt && s.completedAt ? ` · ${formatDuration((s.completedAt - s.startedAt) / 1000)}` : ''}
+                  {s.source !== 'notion' && s.startedAt && s.completedAt ? ` · ${formatSessionDuration(s.completedAt - s.startedAt)}` : ''}
                 </div>
               </Card>
             ))}
