@@ -152,7 +152,9 @@ WOD.**
   série (bleu quand actif, « W » à la place du numéro). Une série
   d'échauffement est **exclue de toutes les stats** : records, 1RM, volume,
   tonnage, « Dernière fois », pré-remplissage, progression, modèle créé
-  depuis la séance, résumé du calendrier.
+  depuis la séance, résumé du calendrier. Au démarrage d'une séance, les
+  échauffements de la dernière fois (même exercice) sont recopiés en tête,
+  à refaire, avant les séries de travail.
 - Bloc WOD : minuteur du format, puis en fin de bloc saisie du **score**,
   de la **charge réellement utilisée par exercice**.
 - Fonctionne **hors-ligne**, synchro au retour du réseau.

@@ -91,8 +91,8 @@ export function SessionPage() {
 
   const addExercise = async (exerciseId: string) => {
     const last = (await lastSetsByExercise(session.id)).get(exerciseId)
-    const reps = last?.[0]?.reps ?? 8
-    const log = exerciseLogFromPlan({ id: uid(), exerciseId, sets: last?.length ?? 3, repsMin: reps, repsMax: reps, restSec: 120 }, last)
+    const reps = last?.work[0]?.reps ?? 8
+    const log = exerciseLogFromPlan({ id: uid(), exerciseId, sets: last?.work.length ?? 3, repsMin: reps, repsMax: reps, restSec: 120 }, last)
     log.target = undefined
     mutate((s) => {
       // Ajouté au dernier bloc classique s'il est en fin de séance, sinon dans un nouveau bloc.

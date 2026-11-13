@@ -15,7 +15,42 @@ import type {
 export const uid = () => crypto.randomUUID()
 
 /** Dernières séries faites sur un exercice, utilisées pour pré-remplir. */
-export type LastSetsLookup = (exerciseId: string) => SetLog[] | undefined
+/** Ce qui a été fait la dernière fois sur un exercice. */
+export interface LastPerformance {
+  /** Séries de travail faites (base du pré-remplissage). */
+  work: SetLog[]
+  /** Échauffements faits lors de cette même séance (recopiés en tête). */
+  warmup: SetLog[]
+}
+
+export type LastSetsLookup = (exerciseId: string) => LastPerformance | undefined
+
+/**
+ * Dernière performance de chaque exercice : la séance terminée la plus
+ * récente où il a des séries de travail faites (avec reps), et ses
+ * échauffements de cette même séance.
+ */
+export function lastPerformances(sessions: Session[], excludeSessionId?: string): Map<string, LastPerformance> {
+  const done = sessions
+    .filter((s) => s.status === 'done' && !s.deleted && s.id !== excludeSessionId)
+    .sort((a, b) => (b.completedAt ?? b.startedAt ?? 0) - (a.completedAt ?? a.startedAt ?? 0))
+  const out = new Map<string, LastPerformance>()
+  for (const s of done) {
+    const inSession = new Map<string, LastPerformance>()
+    for (const b of s.blocks) {
+      if (b.kind !== 'classic') continue
+      for (const ex of b.exercises) {
+        const cur = inSession.get(ex.exerciseId) ?? { work: [], warmup: [] }
+        // Séries sans reps (isométrie importée) : pas de base de pré-remplissage.
+        cur.work.push(...ex.sets.filter((x) => x.done && !x.warmup && x.reps))
+        cur.warmup.push(...ex.sets.filter((x) => x.done && x.warmup))
+        inSession.set(ex.exerciseId, cur)
+      }
+    }
+    for (const [id, perf] of inSession) if (perf.work.length && !out.has(id)) out.set(id, perf)
+  }
+  return out
+}
 
 /**
  * Séries pré-remplies : charge cible (sinon celle de la dernière fois), reps
@@ -41,13 +76,17 @@ export function prefillSets(plan: ClassicExercisePlan, last: SetLog[] | undefine
 /** Ajustement des cibles d'un exercice (progression de programme). */
 export type PlanAdjuster = (plan: ClassicExercisePlan) => { plan: ClassicExercisePlan; note?: string }
 
-export function exerciseLogFromPlan(plan: ClassicExercisePlan, last: SetLog[] | undefined, note?: string): ClassicExerciseLog {
+/** Échauffements de la dernière fois, recopiés (mêmes charges et reps, à refaire). */
+const copyWarmups = (warmups: SetLog[] | undefined): SetLog[] =>
+  (warmups ?? []).map((w) => ({ id: uid(), load: w.load, reps: w.reps, warmup: true, done: false }))
+
+export function exerciseLogFromPlan(plan: ClassicExercisePlan, last: LastPerformance | undefined, note?: string): ClassicExerciseLog {
   return {
     id: uid(),
     exerciseId: plan.exerciseId,
     target: { repsMin: plan.repsMin, repsMax: plan.repsMax, targetLoad: plan.targetLoad },
     restSec: plan.restSec,
-    sets: prefillSets(plan, last),
+    sets: [...copyWarmups(last?.warmup), ...prefillSets(plan, last?.work)],
     notes: plan.notes,
     targetNote: note,
   }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { prefillSets, sessionFromTemplate, templateFromSession } from './session'
-import type { ClassicExercisePlan, Template } from './types'
+import { exerciseLogFromPlan, lastPerformances, prefillSets, sessionFromTemplate, templateFromSession } from './session'
+import type { ClassicExercisePlan, Session, SetLog, Template } from './types'
 
 const plan = (p: Partial<ClassicExercisePlan>): ClassicExercisePlan => ({
   id: 'p',
@@ -85,5 +85,42 @@ describe('templateFromSession', () => {
     const p = t.blocks[0].kind === 'classic' ? t.blocks[0].exercises[0] : undefined
     expect(p).toMatchObject({ exerciseId: 'squat', sets: 3, repsMin: 4, repsMax: 6, targetLoad: 100 })
     expect(t.blocks[1]).toMatchObject({ kind: 'wod', format: { type: 'amrap', durationSec: 600 } })
+  })
+})
+
+describe('pré-remplissage avec les échauffements de la dernière fois', () => {
+  const done = (id: string, t: number, sets: SetLog[]): Session => ({
+    id,
+    updatedAt: 0,
+    name: id,
+    status: 'done',
+    completedAt: t,
+    source: 'app',
+    blocks: [{ id: 'b', kind: 'classic', exercises: [{ id: 'e', exerciseId: 'squat', restSec: 120, sets }] }],
+  })
+  const w = (load: number, reps: number): SetLog => ({ id: `w${load}`, load, reps, done: true, warmup: true })
+  const s = (load: number, reps: number): SetLog => ({ id: `s${load}`, load, reps, done: true })
+
+  it('dernière séance avec des séries de travail, et ses échauffements', () => {
+    const perf = lastPerformances([done('ancienne', 1, [w(20, 10), s(90, 5)]), done('recente', 2, [w(40, 10), w(60, 5), s(100, 5)])])
+    expect(perf.get('squat')?.warmup.map((x) => x.load)).toEqual([40, 60])
+    expect(perf.get('squat')?.work.map((x) => x.load)).toEqual([100])
+  })
+
+  it('échauffements recopiés en tête, à refaire, sans toucher aux séries de travail', () => {
+    const last = lastPerformances([done('a', 1, [w(40, 10), w(60, 5), s(100, 5), s(100, 5)])]).get('squat')
+    const log = exerciseLogFromPlan(plan({ sets: 3, targetLoad: 102.5 }), last)
+    expect(log.sets.map((x) => [x.warmup ?? false, x.load, x.reps, x.done])).toEqual([
+      [true, 40, 10, false],
+      [true, 60, 5, false],
+      [false, 102.5, 5, false],
+      [false, 102.5, 5, false],
+      [false, 102.5, 5, false],
+    ])
+  })
+
+  it('sans échauffement la dernière fois : rien d’ajouté', () => {
+    const last = lastPerformances([done('a', 1, [s(100, 5)])]).get('squat')
+    expect(exerciseLogFromPlan(plan({ sets: 2 }), last).sets.every((x) => !x.warmup)).toBe(true)
   })
 })
