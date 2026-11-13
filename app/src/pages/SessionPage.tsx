@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { db, live, save, softDelete } from '../db/db'
 import { referenceMaxValue } from '../domain/progression'
-import { formatDateDMY, formatSessionDuration } from '../domain/dates'
+import { formatLongDay, formatSessionDuration } from '../domain/dates'
 import { formatDuration } from '../domain/exercise'
 import { exerciseLogFromPlan, sessionProgress, templateFromSession, uid } from '../domain/session'
 import { bodyweightAt, computeRecords, exerciseHistory, isPR, setPR, sessionTime } from '../domain/stats'
@@ -427,8 +427,8 @@ function SessionMenu({
   )
 }
 
-/** "Terminée en 1 h 13 · 12-10-2026" ; sans durée pour les séances importées (horaires inconnus). */
+/** "Terminée · mercredi 11 novembre 2026 (42 min)" ; sans durée pour les séances importées (horaires inconnus). */
 function describeFinished(s: Session, completedAt: number): string {
-  const duration = s.source !== 'notion' && s.startedAt ? ` en ${formatSessionDuration(completedAt - s.startedAt)}` : ''
-  return `Terminée${duration} · ${formatDateDMY(completedAt)}`
+  const duration = s.source !== 'notion' && s.startedAt ? ` (${formatSessionDuration(completedAt - s.startedAt)})` : ''
+  return `Terminée · ${formatLongDay(completedAt)}${duration}`
 }
