@@ -1,5 +1,5 @@
 import { db, live, save } from '../db/db'
-import { isDone, sessionTime } from '../domain/stats'
+import { isDone, isWorkSet, sessionTime } from '../domain/stats'
 import { emptySession, sessionFromTemplate } from '../domain/session'
 import type { Session, SetLog } from '../domain/types'
 
@@ -15,7 +15,7 @@ export async function lastSetsByExercise(excludeSessionId?: string): Promise<Map
       if (b.kind !== 'classic') continue
       for (const ex of b.exercises) {
         // Séries sans reps (isométrie importée) : pas de base de pré-remplissage.
-        const done = ex.sets.filter((x) => x.done && x.reps)
+        const done = ex.sets.filter((x) => isWorkSet(x) && x.reps)
         if (done.length) inSession.set(ex.exerciseId, [...(inSession.get(ex.exerciseId) ?? []), ...done])
       }
     }

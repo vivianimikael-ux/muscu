@@ -132,6 +132,8 @@ export interface SetLog {
   reps?: number
   done: boolean
   doneAt?: number
+  /** Série d'échauffement : exclue de toutes les stats (records, 1RM, volume, progression). */
+  warmup?: boolean
 }
 
 export interface ClassicExerciseLog {

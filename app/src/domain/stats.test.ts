@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { estimate1RM } from './e1rm'
-import { computeRecords, exerciseHistory, muscleVolume, setPR, wodItemTotals } from './stats'
+import { computeRecords, exerciseHistory, isPR, muscleVolume, setPR, wodItemTotals } from './stats'
 import type { BodyweightEntry, Exercise, Session, SetLog, WodBlockLog } from './types'
 
 const squat: Exercise = {
@@ -56,6 +56,17 @@ describe('exerciseHistory', () => {
     expect(h[0].topLoad).toBe(100)
     expect(h[0].tonnage).toBe(500)
     expect(h[0].bestE1rm).toBeCloseTo(estimate1RM(100, 5)!)
+  })
+
+  it('séries d’échauffement : exclues de l’historique, des records et du volume', () => {
+    const warm: SetLog = { id: 'w', load: 140, reps: 5, done: true, warmup: true }
+    const s = session('a', 2, 'squat', [warm, set(100, 5)])
+    const h = exerciseHistory(squat, [s], [])
+    expect(h[0].sets).toHaveLength(1)
+    expect(h[0].topLoad).toBe(100)
+    expect(muscleVolume([s], new Map([[squat.id, squat]]), []).get('quadriceps')).toEqual({ sets: 1, tonnage: 500 })
+    const rec = computeRecords(squat, exerciseHistory(squat, [session('b', 1, 'squat', [set(90, 5)])], []), [])
+    expect(isPR(setPR(squat, warm, rec, undefined))).toBe(false)
   })
 
   it('unilatéral : tonnage compté pour les deux côtés', () => {

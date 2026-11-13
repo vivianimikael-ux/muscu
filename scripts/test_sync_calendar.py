@@ -43,6 +43,7 @@ DONE = {
                 {
                     "exerciseId": "squat",
                     "sets": [
+                        {"load": 60, "reps": 10, "done": True, "warmup": True},
                         {"load": 100, "reps": 5, "rpe": 8, "done": True},
                         {"load": 102.5, "reps": 5, "done": True},
                         {"load": 105, "reps": 5, "done": False},

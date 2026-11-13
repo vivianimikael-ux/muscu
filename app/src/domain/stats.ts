@@ -12,6 +12,9 @@ export const sessionTime = (s: Session): number =>
 
 export const isDone = (s: Session) => s.status === 'done' && !s.deleted
 
+/** Série qui compte pour les stats : faite et pas d'échauffement. */
+export const isWorkSet = (x: SetLog) => x.done && !x.warmup
+
 /** Poids de corps en vigueur à une date : dernière pesée ≤ date, sinon la plus ancienne. */
 export function bodyweightAt(entries: BodyweightEntry[], ts: number): number | undefined {
   const live = entries.filter((e) => !e.deleted).sort((a, b) => a.date.localeCompare(b.date))
@@ -64,7 +67,7 @@ export function exerciseHistory(
     const sets: SetLog[] = []
     for (const b of s.blocks) {
       if (b.kind !== 'classic') continue
-      for (const ex of b.exercises) if (ex.exerciseId === exercise.id) sets.push(...ex.sets.filter((x) => x.done))
+      for (const ex of b.exercises) if (ex.exerciseId === exercise.id) sets.push(...ex.sets.filter(isWorkSet))
     }
     if (sets.length === 0) continue
     let bestE1rm: number | undefined
@@ -156,7 +159,7 @@ export interface SetPR {
 export function setPR(exercise: Exercise, set: SetLog, prior: ExerciseRecords, bw: number | undefined): SetPR {
   const none = { e1rm: false, repMax: false, qty: false }
   const hasHistory = prior.bestE1rm !== undefined || prior.repMax.size > 0 || prior.bestQty !== undefined
-  if (!set.done || !hasHistory) return none
+  if (!isWorkSet(set) || !hasHistory) return none
   if (!isStrengthMeasure(exercise.measure)) {
     return { ...none, qty: set.reps !== undefined && (!prior.bestQty || set.reps > prior.bestQty.value) }
   }
@@ -277,7 +280,7 @@ export function muscleVolume(
         for (const exLog of b.exercises) {
           const ex = exercises.get(exLog.exerciseId)
           if (!ex) continue
-          const done = exLog.sets.filter((x) => x.done)
+          const done = exLog.sets.filter(isWorkSet)
           const tonnage = done.reduce((acc, x) => acc + tonnageLoad(ex.measure, x.load, bw) * (x.reps ?? 0), 0)
           add(ex, done.length, tonnage)
         }

@@ -71,7 +71,7 @@ def describe_session(session: dict, exercise_names: dict[str, str]) -> str:
     for block in session.get("blocks", []):
         if block.get("kind") == "classic":
             for ex in block.get("exercises", []):
-                sets = [s for s in ex.get("sets", []) if s.get("done")]
+                sets = [s for s in ex.get("sets", []) if s.get("done") and not s.get("warmup")]
                 if not sets:
                     continue
                 parts = []

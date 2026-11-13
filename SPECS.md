@@ -148,7 +148,11 @@ WOD.**
 - **Modifications à la volée** : ajouter/supprimer une série, remplacer un
   exercice, réordonner.
 - **Contexte visible** : dernière performance sur l'exercice + record.
-- **Pas de saisie d'échauffement** (hors périmètre).
+- **Séries d'échauffement** (ajout du 2026-11-13) : bouton « W » sur chaque
+  série (bleu quand actif, « W » à la place du numéro). Une série
+  d'échauffement est **exclue de toutes les stats** : records, 1RM, volume,
+  tonnage, « Dernière fois », pré-remplissage, progression, modèle créé
+  depuis la séance, résumé du calendrier.
 - Bloc WOD : minuteur du format, puis en fin de bloc saisie du **score**,
   de la **charge réellement utilisée par exercice**.
 - Fonctionne **hors-ligne**, synchro au retour du réseau.

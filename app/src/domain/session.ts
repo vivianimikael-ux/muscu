@@ -166,8 +166,9 @@ export function templateFromSession(s: Session, now = Date.now()): Template {
       id: uid(),
       kind: 'classic',
       exercises: b.exercises.map((ex) => {
-        const done = ex.sets.filter((x) => x.done)
-        const sets = done.length ? done : ex.sets
+        const work = ex.sets.filter((x) => !x.warmup)
+        const done = work.filter((x) => x.done)
+        const sets = done.length ? done : work.length ? work : ex.sets
         const reps = sets.map((x) => x.reps).filter((r): r is number => r !== undefined && r > 0)
         const repsMin = reps.length ? Math.min(...reps) : (ex.target?.repsMin ?? 8)
         const repsMax = reps.length ? Math.max(...reps) : (ex.target?.repsMax ?? repsMin)

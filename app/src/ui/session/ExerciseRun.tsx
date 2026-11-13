@@ -94,15 +94,27 @@ export function ExerciseRun({
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-[1.75rem_1fr_1fr_3rem] items-center gap-x-2 gap-y-1.5 text-center">
+      <div className="mt-3 grid grid-cols-[1.75rem_1fr_1fr_2.75rem_3rem] items-center gap-x-2 gap-y-1.5 text-center">
         <span className="text-xs text-muted">#</span>
         <span className="text-xs text-muted">{loaded ? MEASURES[exercise.measure].loadLabel : ''}</span>
         <span className="text-xs text-muted">{unit}</span>
+        <span className="text-xs text-muted">WU</span>
         <span />
         {log.sets.map((s, i) => {
           const pr = s.done && isPR(setPR(exercise, s, context.records, bodyweight))
+          // Les séries de travail restent numérotées 1, 2, 3… ; les échauffements affichent « W ».
+          const workNumber = log.sets.slice(0, i + 1).filter((x) => !x.warmup).length
           return (
-            <SetRow key={s.id} index={i} set={s} pr={pr} loaded={loaded} edit={(fn) => edit((l) => fn(l.sets[i]))} onToggle={() => toggle(i)} />
+            <SetRow
+              key={s.id}
+              index={i}
+              label={s.warmup ? 'W' : String(workNumber)}
+              set={s}
+              pr={pr}
+              loaded={loaded}
+              edit={(fn) => edit((l) => fn(l.sets[i]))}
+              onToggle={() => toggle(i)}
+            />
           )
         })}
       </div>
@@ -123,6 +135,7 @@ export function ExerciseRun({
 
 function SetRow({
   index,
+  label,
   set,
   pr,
   loaded,
@@ -130,6 +143,7 @@ function SetRow({
   onToggle,
 }: {
   index: number
+  label: string
   set: SetLog
   pr: boolean
   loaded: boolean
@@ -139,13 +153,22 @@ function SetRow({
   const doneBg = set.done ? 'bg-ok/20' : ''
   return (
     <>
-      <span className={`text-sm font-semibold ${pr ? 'text-pr' : 'text-muted'}`}>{pr ? '★' : index + 1}</span>
+      <span className={`text-sm font-semibold ${pr ? 'text-pr' : set.warmup ? 'text-sky-400' : 'text-muted'}`}>{pr ? '★' : label}</span>
       {loaded ? (
         <NumberField ariaLabel={`Charge série ${index + 1}`} value={set.load} onChange={(v) => edit((s) => (s.load = v))} className={doneBg} />
       ) : (
         <span />
       )}
       <NumberField ariaLabel={`Reps série ${index + 1}`} decimal={false} value={set.reps} onChange={(v) => edit((s) => (s.reps = v))} className={doneBg} />
+      <button
+        type="button"
+        onClick={() => edit((s) => (s.warmup = !s.warmup || undefined))}
+        aria-pressed={!!set.warmup}
+        aria-label={set.warmup ? `Série ${index + 1} : échauffement (toucher pour annuler)` : `Marquer la série ${index + 1} comme échauffement`}
+        className={`h-10 rounded-lg text-base font-bold ${set.warmup ? 'bg-sky-500 text-white' : 'bg-card-2 text-muted'}`}
+      >
+        W
+      </button>
       <button
         type="button"
         onClick={onToggle}

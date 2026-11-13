@@ -73,6 +73,7 @@ describe('templateFromSession', () => {
     )
     const ex = s.blocks[0].kind === 'classic' ? s.blocks[0].exercises[0] : undefined
     ex!.sets = [
+      { id: 'w', load: 60, reps: 10, done: true, warmup: true },
       { id: 'a', load: 100, reps: 5, done: true },
       { id: 'b', load: 105, reps: 4, done: true },
       { id: 'c', load: 100, reps: 6, done: true },
