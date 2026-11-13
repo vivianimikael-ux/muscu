@@ -129,6 +129,8 @@ WOD.**
 2. **Double progression** (suggestion) : l'app propose la charge de la
    prochaine séance, tu valides ou corriges (la règle « selon le RPE » a été
    retirée avec le RPE) :
+   - Charge de référence = la **plus basse** des séries de travail de la
+     dernière fois (ex : 35×10, 30×10, 30×10 → 30 kg), précisé le 2026-11-13.
    - Fourchette de reps (ex 8–12). Haut de
      fourchette atteint sur toutes les séries → + 1 incrément. Échec
      (bas de fourchette non atteint) 2 séances de suite → − 10 %.

@@ -58,6 +58,16 @@ describe('mode double progression', () => {
   it('deux échecs de suite → −10 %', () => {
     expect(run([perf([[60, 7], [60, 6], [60, 6]]), perf([[60, 7], [60, 8], [60, 8]], 7)]).plan.targetLoad).toBe(55)
   })
+  it('charges différentes : base = la plus basse (35×12, 30×12, 30×12 → 32,5)', () => {
+    const r = run([perf([[35, 12], [30, 12], [30, 12]])])
+    expect(r.plan.targetLoad).toBe(32.5)
+    expect(r.note).toContain('base 30 kg')
+  })
+
+  it('charges différentes sans haut de fourchette partout : la plus basse reconduite', () => {
+    expect(run([perf([[35, 10], [30, 12], [30, 12]])]).plan.targetLoad).toBe(30)
+  })
+
   it('sinon charge reconduite', () => {
     expect(run([perf([[60, 12], [60, 10], [60, 9]])]).plan.targetLoad).toBe(60)
   })

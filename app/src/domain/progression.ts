@@ -92,8 +92,18 @@ export interface ProgressionResult {
   note?: string
 }
 
-/** Charge principale d'une séance passée : la plus lourde des séries faites. */
-const topLoadOf = (p: ExercisePerformance | undefined) => p?.topLoad
+/**
+ * Charge de référence de la double progression : la plus BASSE des séries
+ * de travail faites (avec reps). Si toutes les séries ont atteint le haut
+ * de la fourchette, elles l'ont toutes fait à au moins cette charge — c'est
+ * donc la charge réellement validée. Ex : 35×10, 30×10, 30×10 → 30 kg.
+ * Poids du corps sans lest : 0.
+ */
+function referenceLoadOf(p: ExercisePerformance | undefined, bodyweight: boolean): number | undefined {
+  const loads = (p?.sets ?? []).filter((s) => s.reps).map((s) => s.load ?? (bodyweight ? 0 : undefined))
+  if (loads.length === 0 || loads.some((l) => l === undefined)) return undefined
+  return Math.min(...(loads as number[]))
+}
 
 /** Cible ajustée d'un exercice de modèle pour une séance de programme. */
 export function progressPlan(base: ClassicExercisePlan, input: ProgressionInput): ProgressionResult {
@@ -126,19 +136,21 @@ export function progressPlan(base: ClassicExercisePlan, input: ProgressionInput)
       // Double progression : haut de fourchette atteint partout → +1 incrément ;
       // deux séances de suite sous le bas de fourchette → −10 %.
       const last = history[0]
-      const lastLoad = topLoadOf(last)
+      const lastLoad = referenceLoadOf(last, exercise.measure === 'bodyweight')
+      const mixed = new Set((last?.sets ?? []).filter((s) => s.reps).map((s) => s.load ?? 0)).size > 1
+      const basis = mixed && lastLoad !== undefined ? ` (base ${formatKg(lastLoad)}, charge la plus basse)` : ''
       if (last && lastLoad !== undefined) {
         const allTop = last.sets.length >= plan.sets && last.sets.every((s) => (s.reps ?? 0) >= plan.repsMax)
         const failed = (p: ExercisePerformance | undefined) => !!p && p.sets.some((s) => (s.reps ?? 0) < plan.repsMin)
         if (allTop) {
           plan.targetLoad = lastLoad + inc
-          notes.push(`+${formatKg(inc)} : ${plan.repsMax} reps atteintes partout`)
+          notes.push(`+${formatKg(inc)} : ${plan.repsMax} reps atteintes partout${basis}`)
         } else if (failed(history[0]) && failed(history[1])) {
           plan.targetLoad = round(lastLoad * (1 - FAILURE_DROP))
           notes.push(`−${FAILURE_DROP * 100} % : deux séances sous ${plan.repsMin} reps`)
         } else {
           plan.targetLoad = lastLoad
-          notes.push(`Charge reconduite : viser ${plan.repsMax} reps sur chaque série`)
+          notes.push(`Charge reconduite${basis} : viser ${plan.repsMax} reps sur chaque série`)
         }
       }
     }
