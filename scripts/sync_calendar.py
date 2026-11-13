@@ -79,8 +79,6 @@ def describe_session(session: dict, exercise_names: dict[str, str]) -> str:
                     load = s.get("load")
                     reps = s.get("reps")
                     txt = f"{_fmt_num(load)}×{reps}" if load is not None else f"{reps}"
-                    if s.get("rpe") is not None:
-                        txt += f" @{_fmt_num(s['rpe'])}"
                     parts.append(txt)
                 lines.append(f"{exercise_names.get(ex.get('exerciseId'), '?')} : {', '.join(parts)}")
         elif block.get("kind") == "wod" and block.get("done"):

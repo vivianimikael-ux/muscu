@@ -14,9 +14,9 @@ const plan = (p: Partial<ClassicExercisePlan>): ClassicExercisePlan => ({
 
 describe('prefillSets', () => {
   it('reprend la cible', () => {
-    const sets = prefillSets(plan({ targetLoad: 100, targetRpe: 8 }), undefined)
+    const sets = prefillSets(plan({ targetLoad: 100 }), undefined)
     expect(sets).toHaveLength(3)
-    expect(sets[0]).toMatchObject({ load: 100, reps: 5, rpe: 8, done: false })
+    expect(sets[0]).toMatchObject({ load: 100, reps: 5, done: false })
   })
 
   it('sans charge cible, reprend la charge de la dernière fois série par série', () => {
@@ -65,7 +65,7 @@ describe('templateFromSession', () => {
         updatedAt: 0,
         name: 'Jambes',
         blocks: [
-          { id: 'b1', kind: 'classic', exercises: [plan({ sets: 4, targetLoad: 100, targetRpe: 8 })] },
+          { id: 'b1', kind: 'classic', exercises: [plan({ sets: 4, targetLoad: 100 })] },
           { id: 'b2', kind: 'wod', format: { type: 'amrap', durationSec: 600 }, items: [{ id: 'i', exerciseId: 'burpee', quantity: 10 }] },
         ],
       },
@@ -82,7 +82,7 @@ describe('templateFromSession', () => {
     expect(t.name).toBe('Jambes')
     expect(t.id).not.toBe('t')
     const p = t.blocks[0].kind === 'classic' ? t.blocks[0].exercises[0] : undefined
-    expect(p).toMatchObject({ exerciseId: 'squat', sets: 3, repsMin: 4, repsMax: 6, targetLoad: 100, targetRpe: 8 })
+    expect(p).toMatchObject({ exerciseId: 'squat', sets: 3, repsMin: 4, repsMax: 6, targetLoad: 100 })
     expect(t.blocks[1]).toMatchObject({ kind: 'wod', format: { type: 'amrap', durationSec: 600 } })
   })
 })

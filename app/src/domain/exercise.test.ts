@@ -7,14 +7,8 @@ describe('describeSets', () => {
     expect(describeSets('barbell', [s, s, s, s])).toBe('4 séries 15kg×6')
   })
 
-  it('pyramide : groupes dans l’ordre, RPE et décimales à la française', () => {
-    expect(describeSets('barbell', [{ load: 80, reps: 6 }, { load: 102.5, reps: 3, rpe: 8 }, { load: 102.5, reps: 3, rpe: 8 }])).toBe(
-      '80kg×6, 2 séries 102,5kg×3 @8',
-    )
-  })
-
-  it('sans RPE sur demande : séries de RPE différents regroupées', () => {
-    expect(describeSets('barbell', [{ load: 100, reps: 5, rpe: 7 }, { load: 100, reps: 5, rpe: 8 }], { rpe: false })).toBe('2 séries 100kg×5')
+  it('pyramide : groupes dans l’ordre, décimales à la française', () => {
+    expect(describeSets('barbell', [{ load: 80, reps: 6 }, { load: 102.5, reps: 3 }, { load: 102.5, reps: 3 }])).toBe('80kg×6, 2 séries 102,5kg×3')
   })
 
   it('poids du corps : PDC, avec ou sans lest', () => {

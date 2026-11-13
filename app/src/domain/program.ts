@@ -2,7 +2,7 @@
 
 import { localDay, parseDay } from './dates'
 import { isDone, sessionTime } from './stats'
-import type { Program, ProgramBlock, ProgressionMode, ScheduledEntry, Session, SuggestRule, WeekOverride } from './types'
+import type { Program, ProgramBlock, ProgressionMode, ScheduledEntry, Session, WeekOverride } from './types'
 
 /** Une séance à faire dans le programme : bloc × semaine × emplacement. */
 export interface Occurrence {
@@ -39,13 +39,10 @@ export function occurrences(program: Program): Occurrence[] {
   return out
 }
 
-/** Mode et règle de suggestion effectifs pour une occurrence d'exercice. */
-export function effectiveMode(block: ProgramBlock, week: number, planId: string): { mode: ProgressionMode; suggestRule: SuggestRule } {
+/** Mode de progression effectif pour une occurrence d'exercice : semaine > exercice > bloc. */
+export function effectiveMode(block: ProgramBlock, week: number, planId: string): ProgressionMode {
   const rule = block.rules.find((r) => r.planId === planId)
-  return {
-    mode: overrideFor(block, week)?.mode ?? rule?.mode ?? block.mode,
-    suggestRule: rule?.suggestRule ?? block.suggestRule,
-  }
+  return overrideFor(block, week)?.mode ?? rule?.mode ?? block.mode
 }
 
 // ---------------------------------------------------------------------------

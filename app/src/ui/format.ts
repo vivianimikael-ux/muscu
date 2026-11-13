@@ -1,5 +1,5 @@
 import { formatDuration } from '../domain/exercise'
-import type { ProgressionMode, SuggestRule, WodFormat, WodFormatType, WodScore } from '../domain/types'
+import type { ProgressionMode, WodFormat, WodFormatType, WodScore } from '../domain/types'
 
 export const WOD_FORMAT_LABELS: Record<WodFormatType, string> = {
   for_time: 'Rounds / For Time',
@@ -74,11 +74,6 @@ export function parseDuration(text: string, plainUnit: 'min' | 's'): number | un
 
 export const MODE_LABELS: Record<ProgressionMode, string> = {
   free: 'Libre',
-  suggest: 'Suggestion',
+  suggest: 'Double progression',
   percent: '% du 1RM',
-}
-
-export const SUGGEST_LABELS: Record<SuggestRule, string> = {
-  rpe: 'selon le RPE',
-  double: 'double progression',
 }

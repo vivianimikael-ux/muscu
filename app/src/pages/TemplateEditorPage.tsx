@@ -212,7 +212,7 @@ function ClassicBlockEditor({
                 ⋯
               </button>
             </div>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-4 gap-2">
               <label>
                 <Label>Séries</Label>
                 <NumberField decimal={false} value={p.sets} onChange={(v) => edit(p.id, (x) => (x.sets = Math.max(1, v ?? 1)))} />
@@ -242,10 +242,6 @@ function ClassicBlockEditor({
                   onChange={(v) => edit(p.id, (x) => (x.targetLoad = v))}
                   className={hasLoad(measure) ? '' : 'invisible'}
                 />
-              </label>
-              <label>
-                <Label>RPE</Label>
-                <NumberField value={p.targetRpe} placeholder="–" onChange={(v) => edit(p.id, (x) => (x.targetRpe = v))} />
               </label>
             </div>
             <label className="mt-2 flex items-center gap-2">

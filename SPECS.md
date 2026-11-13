@@ -77,7 +77,11 @@ librement (ex : bloc classique squat 5×5 puis bloc WOD AMRAP 12 min).
 ### 3.1 Bloc classique
 
 Liste d'exercices, chacun avec : nombre de séries, reps cibles (valeur ou
-fourchette, ex 8–12), charge cible **ou** RPE cible, temps de repos, notes.
+fourchette, ex 8–12), charge cible, temps de repos, notes.
+
+> **RPE retiré de toute l'app le 2026-11-13** (non utilisé) : saisie,
+> modèles, WOD, progression et 1RM n'en dépendent plus. Les RPE déjà saisis
+> restent stockés mais sont ignorés.
 
 ### 3.2 Bloc WOD
 
@@ -122,13 +126,10 @@ Chaque bloc (ou semaine) choisit un mode. **Ne s'applique jamais aux blocs
 WOD.**
 
 1. **Libre** : charges fixées à la main, l'app ne fait que visualiser.
-2. **Suggestion** : l'app propose la charge de la prochaine séance, tu
-   valides ou corriges. Deux règles disponibles (au choix par exercice,
-   **RPE par défaut** car usage principal) :
-   - **RPE** (défaut) : comparer le RPE réel moyen au RPE cible.
-     RPE réel ≤ cible − 1 → + 1 incrément ; ≥ cible + 1 → − 1 incrément ;
-     sinon charge maintenue.
-   - **Double progression** : fourchette de reps (ex 8–12). Haut de
+2. **Double progression** (suggestion) : l'app propose la charge de la
+   prochaine séance, tu valides ou corriges (la règle « selon le RPE » a été
+   retirée avec le RPE) :
+   - Fourchette de reps (ex 8–12). Haut de
      fourchette atteint sur toutes les séries → + 1 incrément. Échec
      (bas de fourchette non atteint) 2 séances de suite → − 10 %.
    - Incréments par défaut, configurables par exercice : barre 2,5 kg,
@@ -140,7 +141,7 @@ WOD.**
 
 ## 6. En séance (écran clé)
 
-- Une ligne par série : **charge, reps, RPE/RIR**, pré-remplie avec la
+- Une ligne par série : **charge, reps**, pré-remplie avec la
   cible → un tap pour valider si conforme.
 - **Minuteur de repos** démarré automatiquement à la validation d'une série
   (durée = repos prévu, modifiable).
@@ -149,7 +150,7 @@ WOD.**
 - **Contexte visible** : dernière performance sur l'exercice + record.
 - **Pas de saisie d'échauffement** (hors périmètre).
 - Bloc WOD : minuteur du format, puis en fin de bloc saisie du **score**,
-  de la **charge réellement utilisée par exercice** et d'un **RPE global**.
+  de la **charge réellement utilisée par exercice**.
 - Fonctionne **hors-ligne**, synchro au retour du réseau.
 
 ## 7. Max et statistiques
@@ -157,8 +158,8 @@ WOD.**
 ### 7.1 1RM
 
 - **Réel** : saisi manuellement lors d'un test.
-- **Estimé** : recalculé à chaque série d'un bloc classique — table RPE
-  (type RTS) quand le RPE est renseigné, Epley sinon ; séries > 10 reps
+- **Estimé** : recalculé à chaque série d'un bloc classique — formule
+  d'Epley ; séries > 10 reps
   ignorées pour l'estimation.
 - **Exercices au poids du corps** (validé le 2026-10-12) : 1RM estimé
   calculé sur la charge totale (poids de corps du jour + lest) puis
@@ -289,7 +290,7 @@ Supabase : une table par collection, colonnes indexées utiles + `data jsonb`.
 |---|---|
 | `exercises` | nom, type de mesure, muscles principal/secondaires, incrément, max de référence (réel/estimé/training max + %) |
 | `templates` | séance modèle : nom + liste de blocs (classiques / WOD) |
-| `sessions` | séance planifiée ou réalisée : statut, dates, blocs réalisés (séries charge/reps/RPE, scores WOD), origine (`app` / `notion`) |
+| `sessions` | séance planifiée ou réalisée : statut, dates, blocs réalisés (séries charge/reps, scores WOD), origine (`app` / `notion`) |
 | `maxTests` | 1RM réels testés : exercice, date, charge |
 | `bodyweights` | poids de corps daté |
 | `programs` (V2) | programme → blocs → semaines, règle de progression |

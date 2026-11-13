@@ -45,7 +45,6 @@ export function WodBlockCard({ block, exercises, edit }: { block: WodBlockLog; e
           <div>
             <div className="text-xs text-muted">Score</div>
             <div className="text-xl font-bold">{describeScore(block.score)}</div>
-            {block.rpe !== undefined && <div className="text-xs text-muted">RPE {formatNumber(block.rpe)}</div>}
           </div>
           <Button variant="ghost" onClick={() => setScoreOpen(true)}>
             Modifier
@@ -210,13 +209,11 @@ function ScoreForm({
 }) {
   const [score, setScore] = useState<WodScore>(() => initialScore(block, timer, countedRounds))
   const [loads, setLoads] = useState(() => block.items.map((it) => it.load))
-  const [rpe, setRpe] = useState(block.rpe)
   const f = block.format
 
   const save = () => {
     edit((b) => {
       b.score = score
-      b.rpe = rpe
       b.items.forEach((it, i) => (it.load = loads[i]))
       b.done = true
       b.finishedAt ??= Date.now()
@@ -302,11 +299,6 @@ function ScoreForm({
           </div>
         </div>
       )}
-
-      <label className="block">
-        <Label>RPE global</Label>
-        <NumberField value={rpe} placeholder="–" onChange={setRpe} />
-      </label>
 
       <Button variant="primary" className="w-full py-3.5 text-lg" onClick={save}>
         Enregistrer le score

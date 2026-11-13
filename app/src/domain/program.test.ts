@@ -12,7 +12,6 @@ const block = (p: Partial<ProgramBlock> = {}): ProgramBlock => ({
     { id: 's2', templateId: 'haut' },
   ],
   mode: 'percent',
-  suggestRule: 'rpe',
   rules: [],
   overrides: [],
   ...p,
@@ -68,12 +67,12 @@ describe('occurrences', () => {
 describe('effectiveMode', () => {
   it('semaine > exercice > bloc', () => {
     const b = block({
-      rules: [{ planId: 'curl', mode: 'suggest', suggestRule: 'double', percentWeeks: [] }],
+      rules: [{ planId: 'curl', mode: 'suggest', percentWeeks: [] }],
       overrides: [{ week: 1, mode: 'free', skip: [], replace: [], extra: [] }],
     })
-    expect(effectiveMode(b, 0, 'squat')).toEqual({ mode: 'percent', suggestRule: 'rpe' })
-    expect(effectiveMode(b, 0, 'curl')).toEqual({ mode: 'suggest', suggestRule: 'double' })
-    expect(effectiveMode(b, 1, 'curl').mode).toBe('free')
+    expect(effectiveMode(b, 0, 'squat')).toBe('percent')
+    expect(effectiveMode(b, 0, 'curl')).toBe('suggest')
+    expect(effectiveMode(b, 1, 'curl')).toBe('free')
   })
 })
 

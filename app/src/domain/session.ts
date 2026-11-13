@@ -20,7 +20,7 @@ export type LastSetsLookup = (exerciseId: string) => SetLog[] | undefined
 /**
  * Séries pré-remplies : charge cible (sinon celle de la dernière fois), reps
  * cibles (en fourchette : celles de la dernière fois si dans la fourchette),
- * RPE cible. Valider une série conforme = un seul tap.
+ * Valider une série conforme = un seul tap.
  */
 export function prefillSets(plan: ClassicExercisePlan, last: SetLog[] | undefined): SetLog[] {
   return Array.from({ length: plan.sets }, (_, i) => {
@@ -33,7 +33,6 @@ export function prefillSets(plan: ClassicExercisePlan, last: SetLog[] | undefine
       id: uid(),
       load: plan.targetLoad ?? prev?.load,
       reps,
-      rpe: plan.targetRpe,
       done: false,
     }
   })
@@ -46,7 +45,7 @@ export function exerciseLogFromPlan(plan: ClassicExercisePlan, last: SetLog[] | 
   return {
     id: uid(),
     exerciseId: plan.exerciseId,
-    target: { repsMin: plan.repsMin, repsMax: plan.repsMax, targetLoad: plan.targetLoad, targetRpe: plan.targetRpe },
+    target: { repsMin: plan.repsMin, repsMax: plan.repsMax, targetLoad: plan.targetLoad },
     restSec: plan.restSec,
     sets: prefillSets(plan, last),
     notes: plan.notes,
@@ -110,7 +109,7 @@ export function emptySession(now = Date.now()): Session {
 /** Nouvelle série ajoutée à la volée : copie de la dernière. */
 export function nextSet(ex: ClassicExerciseLog): SetLog {
   const last = ex.sets[ex.sets.length - 1]
-  return { id: uid(), load: last?.load, reps: last?.reps, rpe: last?.rpe, done: false }
+  return { id: uid(), load: last?.load, reps: last?.reps, done: false }
 }
 
 export interface SessionProgress {
@@ -156,7 +155,7 @@ function mostFrequent(values: number[]): number | undefined {
 /**
  * Modèle reproduisant une séance faite : pour chaque exercice, le nombre de
  * séries faites, la fourchette de reps réalisée, la charge la plus utilisée
- * et le RPE visé d'origine ; les WOD sont repris avec les charges utilisées.
+ * et le temps de repos ; les WOD sont repris avec les charges utilisées.
  */
 export function templateFromSession(s: Session, now = Date.now()): Template {
   const blocks: BlockPlan[] = s.blocks.map((b) => {
@@ -179,7 +178,6 @@ export function templateFromSession(s: Session, now = Date.now()): Template {
           repsMin,
           repsMax,
           targetLoad: mostFrequent(sets.map((x) => x.load).filter((l): l is number => l !== undefined)),
-          targetRpe: ex.target?.targetRpe,
           restSec: ex.restSec,
           notes: ex.notes,
         }

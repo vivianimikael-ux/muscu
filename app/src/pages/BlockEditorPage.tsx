@@ -4,9 +4,9 @@ import { db } from '../db/db'
 import { formatKg, formatNumber } from '../domain/exercise'
 import { overrideFor } from '../domain/program'
 import { uid } from '../domain/session'
-import type { Exercise, ExerciseRule, Program, ProgramBlock, ProgressionMode, SuggestRule, Template, WeekOverride } from '../domain/types'
+import type { Exercise, ExerciseRule, Program, ProgramBlock, ProgressionMode, Template, WeekOverride } from '../domain/types'
 import { ActionSheet, Button, Card, Empty, Label, NumberField, PageHeader, SectionTitle, Select, TextField } from '../ui/components'
-import { MODE_LABELS, SUGGEST_LABELS } from '../ui/format'
+import { MODE_LABELS } from '../ui/format'
 import { useExerciseMap } from '../ui/hooks'
 import { useTemplateMap } from '../ui/programActions'
 import { TemplatePicker } from '../ui/TemplatePicker'
@@ -14,18 +14,10 @@ import { moveItem, useEditableDoc } from '../ui/useEditableDoc'
 
 type BlockMutate = (fn: (b: ProgramBlock) => void) => void
 
-/** Choix combiné mode + règle de suggestion, pour un seul menu déroulant. */
-type ModeChoice = 'free' | 'suggest-rpe' | 'suggest-double' | 'percent'
-const MODE_CHOICES: { value: ModeChoice; label: string }[] = [
-  { value: 'free', label: 'Libre' },
-  { value: 'suggest-rpe', label: 'Suggestion selon le RPE' },
-  { value: 'suggest-double', label: 'Suggestion double progression' },
-  { value: 'percent', label: '% du 1RM' },
-]
-const toChoice = (mode: ProgressionMode, rule: SuggestRule): ModeChoice =>
-  mode === 'suggest' ? (rule === 'rpe' ? 'suggest-rpe' : 'suggest-double') : mode
-const fromChoice = (c: ModeChoice): { mode: ProgressionMode; suggestRule?: SuggestRule } =>
-  c === 'suggest-rpe' ? { mode: 'suggest', suggestRule: 'rpe' } : c === 'suggest-double' ? { mode: 'suggest', suggestRule: 'double' } : { mode: c }
+const MODE_CHOICES: { value: ProgressionMode; label: string }[] = (['free', 'suggest', 'percent'] as const).map((m) => ({
+  value: m,
+  label: MODE_LABELS[m],
+}))
 
 /** Exceptions d'une semaine, créées à la volée. */
 function ensureOverride(b: ProgramBlock, week: number): WeekOverride {
@@ -87,17 +79,7 @@ export function BlockEditorPage() {
           </div>
           <label className="block">
             <Label>Progression par défaut</Label>
-            <Select
-              value={toChoice(block.mode, block.suggestRule)}
-              options={MODE_CHOICES}
-              onChange={(c) =>
-                mutateBlock((b) => {
-                  const { mode, suggestRule } = fromChoice(c)
-                  b.mode = mode
-                  if (suggestRule) b.suggestRule = suggestRule
-                })
-              }
-            />
+            <Select value={block.mode} options={MODE_CHOICES} onChange={(m) => mutateBlock((b) => void (b.mode = m))} />
           </label>
         </Card>
 
@@ -192,7 +174,6 @@ function TemplateRules({
         const ex = exercises.get(p.exerciseId)
         const rule = block.rules.find((r) => r.planId === p.id)
         const mode = rule?.mode ?? block.mode
-        const choiceValue = rule?.mode ? toChoice(rule.mode, rule.suggestRule ?? block.suggestRule) : 'inherit'
         return (
           <div key={p.id} className="space-y-2">
             <div className="flex items-baseline justify-between gap-2">
@@ -200,34 +181,13 @@ function TemplateRules({
               <span className="shrink-0 text-xs text-muted">
                 {p.sets}×{p.repsMin === p.repsMax ? p.repsMin : `${p.repsMin}–${p.repsMax}`}
                 {p.targetLoad !== undefined ? ` · ${formatKg(p.targetLoad)}` : ''}
-                {p.targetRpe !== undefined ? ` · RPE ${formatNumber(p.targetRpe)}` : ''}
               </span>
             </div>
-            <Select<ModeChoice | 'inherit'>
-              value={choiceValue}
-              options={[
-                {
-                  value: 'inherit',
-                  label: `Comme le bloc (${MODE_LABELS[block.mode]}${block.mode === 'suggest' ? ` ${SUGGEST_LABELS[block.suggestRule]}` : ''})`,
-                },
-                ...MODE_CHOICES,
-              ]}
-              onChange={(c) =>
-                editRule(p.id, (r) => {
-                  if (c === 'inherit') {
-                    r.mode = undefined
-                    r.suggestRule = undefined
-                  } else {
-                    const { mode: m, suggestRule } = fromChoice(c)
-                    r.mode = m
-                    r.suggestRule = suggestRule
-                  }
-                })
-              }
+            <Select<ProgressionMode | 'inherit'>
+              value={rule?.mode ?? 'inherit'}
+              options={[{ value: 'inherit', label: `Comme le bloc (${MODE_LABELS[block.mode]})` }, ...MODE_CHOICES]}
+              onChange={(c) => editRule(p.id, (r) => (r.mode = c === 'inherit' ? undefined : c))}
             />
-            {mode === 'suggest' && (rule?.suggestRule ?? block.suggestRule) === 'rpe' && p.targetRpe === undefined && (
-              <p className="text-xs text-muted">RPE visé non défini dans le modèle : 8 par défaut.</p>
-            )}
             {mode === 'percent' && (
               <div className="grid grid-cols-[2.5rem_1fr_1fr_1fr] items-center gap-x-2 gap-y-1.5 text-center">
                 <span />

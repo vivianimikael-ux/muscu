@@ -14,14 +14,14 @@ const squat: Exercise = {
   trainingMaxPct: 90,
 }
 
-const plan: ClassicExercisePlan = { id: 'p', exerciseId: 'squat', sets: 3, repsMin: 5, repsMax: 5, restSec: 180, targetRpe: 8 }
+const plan: ClassicExercisePlan = { id: 'p', exerciseId: 'squat', sets: 3, repsMin: 5, repsMax: 5, restSec: 180 }
 
-const perf = (sets: [number, number, number?][], daysAgo = 3, bestE1rm?: number): ExercisePerformance => {
-  const s: SetLog[] = sets.map(([load, reps, rpe], i) => ({ id: `${i}`, load, reps, rpe, done: true }))
+const perf = (sets: [number, number][], daysAgo = 3, bestE1rm?: number): ExercisePerformance => {
+  const s: SetLog[] = sets.map(([load, reps], i) => ({ id: `${i}`, load, reps, done: true }))
   return { sessionId: 'x', time: Date.now() - daysAgo * 86_400_000, sets: s, topLoad: Math.max(...sets.map((x) => x[0])), bestE1rm, tonnage: 0 }
 }
 
-const base = { exercise: squat, suggestRule: 'rpe' as const, history: [] as ExercisePerformance[] }
+const base = { exercise: squat, history: [] as ExercisePerformance[] }
 
 describe('mode % du 1RM', () => {
   it('charge = % du max de référence, arrondie à l’incrément, reps et séries de la semaine', () => {
@@ -43,19 +43,15 @@ describe('mode % du 1RM', () => {
   })
 })
 
-describe('mode suggestion RPE', () => {
-  const run = (rpe: number) => progressPlan(plan, { ...base, mode: 'suggest', history: [perf([[100, 5, rpe], [100, 5, rpe]])] })
-  it('RPE bas → +1 incrément', () => expect(run(7).plan.targetLoad).toBe(102.5))
-  it('RPE haut → −1 incrément', () => expect(run(9).plan.targetLoad).toBe(97.5))
-  it('RPE conforme → charge reconduite', () => expect(run(8.5).plan.targetLoad).toBe(100))
-  it('sans historique → cible du modèle', () => {
+describe('mode suggestion : sans historique', () => {
+  it('cible du modèle', () => {
     expect(progressPlan({ ...plan, targetLoad: 80 }, { ...base, mode: 'suggest' }).plan.targetLoad).toBe(80)
   })
 })
 
 describe('mode double progression', () => {
   const p = { ...plan, repsMin: 8, repsMax: 12 }
-  const run = (history: ExercisePerformance[]) => progressPlan(p, { ...base, mode: 'suggest', suggestRule: 'double', history })
+  const run = (history: ExercisePerformance[]) => progressPlan(p, { ...base, mode: 'suggest', history })
   it('haut de fourchette partout → +1 incrément', () => {
     expect(run([perf([[60, 12], [60, 12], [60, 12]])]).plan.targetLoad).toBe(62.5)
   })

@@ -6,9 +6,8 @@ import { roundToIncrement } from './e1rm'
 import { formatKg, formatNumber, incrementOf, isStrengthMeasure } from './exercise'
 import type { ExercisePerformance } from './stats'
 import { bodyweightAt } from './stats'
-import type { BodyweightEntry, ClassicExercisePlan, Deload, Exercise, MaxTest, PercentWeek, ProgressionMode, SuggestRule } from './types'
+import type { BodyweightEntry, ClassicExercisePlan, Deload, Exercise, MaxTest, PercentWeek, ProgressionMode } from './types'
 
-export const DEFAULT_TARGET_RPE = 8
 /** Baisse de charge après deux échecs de suite (double progression). */
 export const FAILURE_DROP = 0.1
 /** Fenêtre de recherche du 1RM estimé de référence. */
@@ -79,7 +78,6 @@ export function referenceMax(
 export interface ProgressionInput {
   exercise: Exercise
   mode: ProgressionMode
-  suggestRule: SuggestRule
   /** Ligne du tableau % pour la semaine en cours (mode percent). */
   percentRow?: PercentWeek
   deload?: Deload
@@ -125,42 +123,22 @@ export function progressPlan(base: ClassicExercisePlan, input: ProgressionInput)
         }
       }
     } else if (input.mode === 'suggest') {
+      // Double progression : haut de fourchette atteint partout → +1 incrément ;
+      // deux séances de suite sous le bas de fourchette → −10 %.
       const last = history[0]
       const lastLoad = topLoadOf(last)
       if (last && lastLoad !== undefined) {
-        if (input.suggestRule === 'rpe') {
-          const target = plan.targetRpe ?? DEFAULT_TARGET_RPE
-          const rpes = last.sets.filter((s) => s.load === lastLoad && s.rpe !== undefined).map((s) => s.rpe!)
-          plan.targetRpe = target
-          if (rpes.length === 0) {
-            plan.targetLoad = lastLoad
-            notes.push('Charge reconduite (pas de RPE la dernière fois)')
-          } else {
-            const avg = rpes.reduce((a, b) => a + b, 0) / rpes.length
-            if (avg <= target - 1) {
-              plan.targetLoad = lastLoad + inc
-              notes.push(`+${formatKg(inc)} : RPE ${formatNumber(Math.round(avg * 10) / 10)} < ${formatNumber(target)} visé`)
-            } else if (avg >= target + 1) {
-              plan.targetLoad = Math.max(0, lastLoad - inc)
-              notes.push(`−${formatKg(inc)} : RPE ${formatNumber(Math.round(avg * 10) / 10)} > ${formatNumber(target)} visé`)
-            } else {
-              plan.targetLoad = lastLoad
-              notes.push(`Charge reconduite : RPE ${formatNumber(Math.round(avg * 10) / 10)} ≈ ${formatNumber(target)}`)
-            }
-          }
+        const allTop = last.sets.length >= plan.sets && last.sets.every((s) => (s.reps ?? 0) >= plan.repsMax)
+        const failed = (p: ExercisePerformance | undefined) => !!p && p.sets.some((s) => (s.reps ?? 0) < plan.repsMin)
+        if (allTop) {
+          plan.targetLoad = lastLoad + inc
+          notes.push(`+${formatKg(inc)} : ${plan.repsMax} reps atteintes partout`)
+        } else if (failed(history[0]) && failed(history[1])) {
+          plan.targetLoad = round(lastLoad * (1 - FAILURE_DROP))
+          notes.push(`−${FAILURE_DROP * 100} % : deux séances sous ${plan.repsMin} reps`)
         } else {
-          const allTop = last.sets.length >= plan.sets && last.sets.every((s) => (s.reps ?? 0) >= plan.repsMax)
-          const failed = (p: ExercisePerformance | undefined) => !!p && p.sets.some((s) => (s.reps ?? 0) < plan.repsMin)
-          if (allTop) {
-            plan.targetLoad = lastLoad + inc
-            notes.push(`+${formatKg(inc)} : ${plan.repsMax} reps atteintes partout`)
-          } else if (failed(history[0]) && failed(history[1])) {
-            plan.targetLoad = round(lastLoad * (1 - FAILURE_DROP))
-            notes.push(`−${FAILURE_DROP * 100} % : deux séances sous ${plan.repsMin} reps`)
-          } else {
-            plan.targetLoad = lastLoad
-            notes.push(`Charge reconduite : viser ${plan.repsMax} reps sur chaque série`)
-          }
+          plan.targetLoad = lastLoad
+          notes.push(`Charge reconduite : viser ${plan.repsMax} reps sur chaque série`)
         }
       }
     }

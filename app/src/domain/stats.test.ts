@@ -18,7 +18,7 @@ const fente: Exercise = { ...squat, id: 'fente', name: 'Fente', measure: 'unilat
 const burpee: Exercise = { ...squat, id: 'burpee', name: 'Burpee', measure: 'reps', primaryMuscles: ['cardio'], secondaryMuscles: [] }
 
 let n = 0
-const set = (load: number | undefined, reps: number, rpe?: number, done = true): SetLog => ({ id: `s${n++}`, load, reps, rpe, done })
+const set = (load: number | undefined, reps: number, done = true): SetLog => ({ id: `s${n++}`, load, reps, done })
 
 function session(id: string, day: number, exerciseId: string, sets: SetLog[], extra: Partial<Session> = {}): Session {
   return {
@@ -41,7 +41,7 @@ const bw: BodyweightEntry[] = [
 describe('exerciseHistory', () => {
   it('ne garde que les séries faites des séances terminées, plus récente d’abord', () => {
     const sessions = [
-      session('a', 2, 'squat', [set(100, 5), set(110, 3, undefined, false)]),
+      session('a', 2, 'squat', [set(100, 5), set(110, 3, false)]),
       session('b', 5, 'squat', [set(105, 5)]),
       session('c', 6, 'squat', [set(200, 1)], { status: 'in_progress' }),
     ]
@@ -64,8 +64,8 @@ describe('exerciseHistory', () => {
   })
 
   it('poids du corps : 1RM estimé sur poids de corps du jour + lest, exprimé en lest', () => {
-    const h = exerciseHistory(traction, [session('a', 20, 'traction', [set(10, 5, 10)])], bw)
-    expect(h[0].bestE1rm).toBeCloseTo(estimate1RM(92, 5, 10)! - 82)
+    const h = exerciseHistory(traction, [session('a', 20, 'traction', [set(10, 5)])], bw)
+    expect(h[0].bestE1rm).toBeCloseTo(estimate1RM(92, 5)! - 82)
   })
 })
 
@@ -85,11 +85,11 @@ describe('records', () => {
     expect(setPR(squat, set(105, 6), rec, undefined).repMax).toBe(true)
     expect(setPR(squat, set(100, 6), rec, undefined).repMax).toBe(false)
     expect(setPR(squat, set(100, 9), rec, undefined).repMax).toBe(true)
-    expect(setPR(squat, set(150, 1, 10), rec, undefined).e1rm).toBe(true)
+    expect(setPR(squat, set(150, 1), rec, undefined).e1rm).toBe(true)
   })
 
   it('pas de record sans historique', () => {
-    expect(setPR(squat, set(150, 1, 10), { repMax: new Map() }, undefined)).toEqual({ e1rm: false, repMax: false, qty: false })
+    expect(setPR(squat, set(150, 1), { repMax: new Map() }, undefined)).toEqual({ e1rm: false, repMax: false, qty: false })
   })
 
   it('les WOD ne comptent pas pour les records', () => {

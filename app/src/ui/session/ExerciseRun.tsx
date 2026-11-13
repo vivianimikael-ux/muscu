@@ -28,7 +28,6 @@ function describeTarget(log: ClassicExerciseLog, ex: Exercise): string {
   const reps = t.repsMin === t.repsMax ? `${t.repsMin}` : `${t.repsMin}–${t.repsMax}`
   const parts = [`${log.sets.length} × ${reps}${unit === 'reps' ? '' : ` ${unit}`}`]
   if (t.targetLoad !== undefined) parts.push(formatKg(t.targetLoad))
-  if (t.targetRpe !== undefined) parts.push(`RPE ${formatNumber(t.targetRpe)}`)
   return parts.join(' · ')
 }
 
@@ -81,7 +80,7 @@ export function ExerciseRun({
         <div className="mt-1 space-y-0.5 text-xs text-muted">
           {context.last && (
             <div>
-              Dernière fois ({formatDateDMY(context.last.time)}) : {describeSets(exercise.measure, context.last.sets, { rpe: false })}
+              Dernière fois ({formatDateDMY(context.last.time)}) : {describeSets(exercise.measure, context.last.sets)}
             </div>
           )}
           {ref && (
@@ -95,11 +94,10 @@ export function ExerciseRun({
         </div>
       )}
 
-      <div className="mt-3 grid grid-cols-[1.75rem_1fr_1fr_1fr_3rem] items-center gap-x-2 gap-y-1.5 text-center">
+      <div className="mt-3 grid grid-cols-[1.75rem_1fr_1fr_3rem] items-center gap-x-2 gap-y-1.5 text-center">
         <span className="text-xs text-muted">#</span>
         <span className="text-xs text-muted">{loaded ? MEASURES[exercise.measure].loadLabel : ''}</span>
         <span className="text-xs text-muted">{unit}</span>
-        <span className="text-xs text-muted">RPE</span>
         <span />
         {log.sets.map((s, i) => {
           const pr = s.done && isPR(setPR(exercise, s, context.records, bodyweight))
@@ -148,7 +146,6 @@ function SetRow({
         <span />
       )}
       <NumberField ariaLabel={`Reps série ${index + 1}`} decimal={false} value={set.reps} onChange={(v) => edit((s) => (s.reps = v))} className={doneBg} />
-      <NumberField ariaLabel={`RPE série ${index + 1}`} value={set.rpe} placeholder="–" onChange={(v) => edit((s) => (s.rpe = v))} className={doneBg} />
       <button
         type="button"
         onClick={onToggle}

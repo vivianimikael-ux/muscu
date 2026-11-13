@@ -29,7 +29,7 @@ export function bodyweightAt(entries: BodyweightEntry[], ts: number): number | u
  * +37 kg" se lit bien mieux que "1RM de 117 kg" pour des tractions.
  */
 export function setE1rm(exercise: Exercise, set: SetLog, bw: number | undefined): number | undefined {
-  const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps, set.rpe)
+  const e = estimate1RM(liftedLoad(exercise.measure, set.load, bw), set.reps)
   if (e === undefined) return undefined
   return exercise.measure === 'bodyweight' ? e - (bw ?? 0) : e
 }

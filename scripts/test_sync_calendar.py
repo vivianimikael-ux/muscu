@@ -60,7 +60,7 @@ class DesiredEventsTest(unittest.TestCase):
         ev = desired_events([PROGRAM], [DONE], EXERCISES)["session-sess1@muscu-app"]
         self.assertEqual(ev["summary"], "✓ Jambes · Force S1")
         self.assertEqual(ev["start"].hour, 18)
-        self.assertEqual(ev["description"], "Squat : 100×5 @8, 102,5×5\nWOD (Burpees) : 5 tours + 3")
+        self.assertEqual(ev["description"], "Squat : 100×5, 102,5×5\nWOD (Burpees) : 5 tours + 3")
 
     def test_seance_planifiee_au_creneau_du_programme(self):
         events = desired_events([PROGRAM], [DONE], EXERCISES)

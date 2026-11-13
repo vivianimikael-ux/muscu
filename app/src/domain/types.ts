@@ -77,7 +77,6 @@ export interface ClassicExercisePlan {
   repsMin: number
   repsMax: number
   targetLoad?: number
-  targetRpe?: number
   restSec: number
   notes?: string
 }
@@ -131,7 +130,6 @@ export interface SetLog {
   load?: number
   /** Reps, ou quantité pour les mesures sans charge. */
   reps?: number
-  rpe?: number
   done: boolean
   doneAt?: number
 }
@@ -140,8 +138,8 @@ export interface ClassicExerciseLog {
   id: string
   exerciseId: string
   /** Cible copiée depuis le modèle au démarrage (absente si ajouté à la volée). */
-  target?: Pick<ClassicExercisePlan, 'repsMin' | 'repsMax' | 'targetLoad' | 'targetRpe'>
-  /** Explication de la cible calculée par la progression (ex : "+2,5 kg : RPE 7 < 8"). */
+  target?: Pick<ClassicExercisePlan, 'repsMin' | 'repsMax' | 'targetLoad'>
+  /** Explication de la cible calculée par la progression (ex : "+2,5 kg : 12 reps atteintes partout"). */
   targetNote?: string
   restSec: number
   sets: SetLog[]
@@ -170,7 +168,6 @@ export interface WodBlockLog {
   /** Charges réellement utilisées (modifiables en fin de bloc). */
   items: WodItem[]
   score?: WodScore
-  rpe?: number
   startedAt?: number
   finishedAt?: number
   done: boolean
@@ -214,8 +211,8 @@ export interface BodyweightEntry extends Doc {
 // ---------------------------------------------------------------------------
 // Programmes (SPECS.md §2)
 
+/** suggest = double progression (la suggestion selon le RPE a été retirée). */
 export type ProgressionMode = 'free' | 'suggest' | 'percent'
-export type SuggestRule = 'rpe' | 'double'
 
 /** Une ligne du tableau % du 1RM (index = semaine du bloc). */
 export interface PercentWeek {
@@ -234,7 +231,6 @@ export interface ExerciseRule {
   planId: string
   /** Absent : mode du bloc. */
   mode?: ProgressionMode
-  suggestRule?: SuggestRule
   percentWeeks: PercentWeek[]
 }
 
@@ -267,7 +263,6 @@ export interface ProgramBlock {
   /** Semaine type : séances dans l'ordre. */
   slots: WeekSlot[]
   mode: ProgressionMode
-  suggestRule: SuggestRule
   rules: ExerciseRule[]
   overrides: WeekOverride[]
 }

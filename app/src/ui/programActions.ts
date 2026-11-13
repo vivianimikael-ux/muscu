@@ -15,7 +15,6 @@ export const newBlock = (n: number): ProgramBlock => ({
   weeks: 4,
   slots: [],
   mode: 'free',
-  suggestRule: 'rpe',
   rules: [],
   overrides: [],
 })
@@ -88,13 +87,12 @@ export async function startProgramSession(program: Program, occ: Occurrence): Pr
     adjust: (plan) => {
       const exercise = exMap.get(plan.exerciseId)
       if (!exercise) return { plan }
-      const { mode, suggestRule } = effectiveMode(block, occ.week, plan.id)
+      const mode = effectiveMode(block, occ.week, plan.id)
       const history = exerciseHistory(exercise, liveSessions, liveBw)
       const rule = block.rules.find((r) => r.planId === plan.id)
       return progressPlan(plan, {
         exercise,
         mode,
-        suggestRule,
         percentRow: rule?.percentWeeks[occ.week],
         deload,
         history,
