@@ -15,7 +15,7 @@ export function TemplatePicker({
 }) {
   const templates = useLiveQuery(async () => live(await db.templates.toArray()).sort((a, b) => a.name.localeCompare(b.name, 'fr')))
   return (
-    <Sheet open={open} onClose={onClose} title={title}>
+    <Sheet open={open} onClose={onClose} title={title} tall>
       {templates?.length === 0 && <Empty>Aucun modèle : crée d’abord une séance modèle dans l’onglet Plan.</Empty>}
       <ul className="divide-y divide-line">
         {templates?.map((t) => (

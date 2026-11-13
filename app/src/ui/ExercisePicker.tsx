@@ -80,7 +80,7 @@ export function ExercisePicker({
   }
 
   return (
-    <Sheet open={open} onClose={onClose} title={title}>
+    <Sheet open={open} onClose={onClose} title={title} tall>
       <div className="sticky top-0 z-10 -mx-4 space-y-2 bg-card px-4 pb-2">
         <TextField value={query} onChange={setQuery} placeholder="Rechercher…" />
         <MuscleChips muscle={muscle} setMuscle={setMuscle} />

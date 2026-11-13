@@ -244,7 +244,47 @@ export function Chip({ active, onClick, children }: { active: boolean; onClick: 
 }
 
 /** Panneau modal montant du bas de l'écran. */
-export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+/**
+ * Zone réellement visible de l'écran. Sur iPhone, le clavier se superpose à
+ * la page sans la redimensionner : on cale les panneaux sur le
+ * visualViewport pour qu'ils restent au-dessus du clavier.
+ */
+function useVisibleViewport(active: boolean): { top: number; height: number } | undefined {
+  const [vp, setVp] = useState<{ top: number; height: number }>()
+  useEffect(() => {
+    const vv = window.visualViewport
+    if (!active || !vv) return
+    const update = () => setVp({ top: vv.offsetTop, height: vv.height })
+    update()
+    vv.addEventListener('resize', update)
+    vv.addEventListener('scroll', update)
+    return () => {
+      vv.removeEventListener('resize', update)
+      vv.removeEventListener('scroll', update)
+    }
+  }, [active])
+  return active ? vp : undefined
+}
+
+/**
+ * Panneau modal montant du bas de l'écran, toujours au-dessus du clavier.
+ * `tall` : hauteur fixe (listes avec recherche), pour que les résultats
+ * restent juste sous le champ au lieu de faire rétrécir le panneau.
+ */
+export function Sheet({
+  open,
+  onClose,
+  title,
+  children,
+  tall = false,
+}: {
+  open: boolean
+  onClose: () => void
+  title: string
+  children: ReactNode
+  tall?: boolean
+}) {
+  const vp = useVisibleViewport(open)
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
@@ -255,9 +295,13 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
   }, [open])
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-50 flex flex-col justify-end bg-black/60" onClick={onClose}>
+    <div
+      className="fixed inset-x-0 top-0 z-50 flex h-dvh flex-col justify-end bg-black/60"
+      style={vp ? { top: vp.top, height: vp.height } : undefined}
+      onClick={onClose}
+    >
       <div
-        className="pb-safe flex max-h-[90dvh] flex-col rounded-t-3xl bg-card"
+        className={`pb-safe flex flex-col rounded-t-3xl bg-card ${tall ? 'h-[90%]' : 'max-h-[90%]'}`}
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={title}
@@ -268,7 +312,7 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
             ✕
           </button>
         </div>
-        <div className="overflow-y-auto px-4 pb-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">{children}</div>
       </div>
     </div>
   )
